@@ -3,6 +3,7 @@
 use std::env;
 use std::os::unix::io::{FromRawFd, RawFd};
 use tokio::net::UnixListener;
+use tracing::warn;
 
 /// The starting file descriptor index passed by systemd (FD 3).
 pub const SD_LISTEN_FDS_START: RawFd = 3;
@@ -33,6 +34,10 @@ pub fn parse_listen_fds() -> ActivatedSockets {
     let varlink_listener = if count >= 1 {
         adopt_unix_listener(SD_LISTEN_FDS_START)
     } else {
+        warn!(
+            "systemd socket activation indicated LISTEN_FDS={} but expected at least 1; varlink listener will not be attached",
+            count
+        );
         None
     };
 
@@ -42,7 +47,21 @@ pub fn parse_listen_fds() -> ActivatedSockets {
 fn adopt_unix_listener(fd: RawFd) -> Option<UnixListener> {
     unsafe {
         let std_listener = std::os::unix::net::UnixListener::from_raw_fd(fd);
-        let _ = std_listener.set_nonblocking(true);
-        UnixListener::from_std(std_listener).ok()
+        if let Err(e) = std_listener.set_nonblocking(true) {
+            warn!(
+                "Failed to set nonblocking on adopted fd {}: {}; listener will fall back to blocking mode",
+                fd, e
+            );
+        }
+        match UnixListener::from_std(std_listener) {
+            Ok(listener) => Some(listener),
+            Err(e) => {
+                warn!(
+                    "Failed to convert adopted fd {} into a tokio UnixListener: {}; the FD may be the wrong type",
+                    fd, e
+                );
+                None
+            }
+        }
     }
 }

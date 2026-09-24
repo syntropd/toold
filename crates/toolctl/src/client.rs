@@ -7,6 +7,9 @@ use std::path::Path;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::UnixStream;
 
+/// Maximum per-call reply buffer size in bytes.
+pub const MAX_MSG_BYTES: usize = 1024 * 1024;
+
 /// Varlink request framing.
 #[derive(Debug, Serialize)]
 struct VarlinkRequest<'a> {
@@ -55,6 +58,12 @@ impl TooldClient {
             if n == 0 {
                 bail!("Connection closed by toold before response");
             }
+            if buffer.len() + n > MAX_MSG_BYTES {
+                bail!(
+                    "Varlink reply exceeded {} byte cap; aborting",
+                    MAX_MSG_BYTES
+                );
+            }
             buffer.extend_from_slice(&chunk[..n]);
 
             if let Some(pos) = buffer.iter().position(|&b| b == 0x00) {
@@ -63,7 +72,20 @@ impl TooldClient {
                     .context("Failed parsing Varlink reply from toold")?;
 
                 if let Some(err) = response.error {
-                    bail!("toold returned error: {}", err);
+                    // Include the parameters payload when present so the
+                    // operator sees *why* the daemon rejected the call
+                    // (InvalidParameter reason, ToolNotFound name, etc.)
+                    // rather than just the error name.
+                    let details = response
+                        .parameters
+                        .as_ref()
+                        .map(|p| p.to_string())
+                        .unwrap_or_default();
+                    if details.is_empty() {
+                        bail!("toold returned error: {}", err);
+                    } else {
+                        bail!("toold returned error: {} ({})", err, details);
+                    }
                 }
 
                 return Ok(response.parameters.unwrap_or(Value::Null));
