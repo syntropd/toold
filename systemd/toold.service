@@ -1,0 +1,39 @@
+[Unit]
+Description=Syntropd Sandboxed Action and Diagnostic Execution Daemon
+Documentation=https://github.com/syntropd/toold
+Requires=toold.socket
+After=network.target toold.socket
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/toold
+Restart=on-failure
+RestartSec=2s
+WatchdogSec=30s
+
+# Hardened sandboxing
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+PrivateTmp=true
+PrivateDevices=true
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Storage and runtime paths
+ReadWritePaths=/var/lib/toold /run/syntrop
+ReadOnlyPaths=/etc /var/log /usr/lib/systemd/system
+
+# Resource containment
+MemoryHigh=32M
+MemoryMax=64M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target

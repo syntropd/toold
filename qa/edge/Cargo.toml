@@ -1,0 +1,14 @@
+[package]
+name = "qa-edge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+toold-core = { path = "../../crates/toold-core" }
+toold-daemon = { path = "../../crates/toold-daemon" }
