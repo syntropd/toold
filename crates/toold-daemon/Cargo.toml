@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Sandboxed remediation and rollback checkpointer daemon for syntropd"
 
 [lib]
 name = "toold_daemon"
@@ -22,6 +23,6 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-toold-core = { package = "syntropd-toold-core", path = "../toold-core" }
+toold-core = { package = "syntrop-toold-core", version = "0.2.0", path = "../toold-core" }
 tracing.workspace = true
 tracing-subscriber.workspace = true

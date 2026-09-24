@@ -1,11 +1,11 @@
 [package]
-name = "syntropd-toold-core"
+name = "syntrop-toold-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-publish = false
+description = "Core library and domain types for syntrop-toold"
 
 [lib]
 name = "toold_core"
