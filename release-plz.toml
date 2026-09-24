@@ -1,0 +1,22 @@
+# release-plz configuration for the toold workspace.
+#
+# Documentation: https://release-plz.dev/docs/config
+
+[workspace]
+# Cargo.toml is the source of truth and is bumped automatically.
+version = true
+lockfile = true
+# Tag format: leading 'v' for clarity in `git log --oneline`.
+git_tag_name = "v{{ version }}"
+# Reuse the existing CHANGELOG.md instead of replacing it.
+changelog_update = true
+changelog_path = "./CHANGELOG.md"
+pr_labels = ["release-plz"]
+# Don't create git releases until the maintainer enables them.
+git_release = "disable"
+# Don't publish to crates.io until we're ready.
+publish = "never"
+
+[changelog]
+sort_by = "version"
+filter_commits = true
