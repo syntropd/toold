@@ -337,7 +337,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "serde_json",
- "syntropd-toold",
+ "syntrop-toold",
  "syntropd-toold-core",
  "tempfile",
  "tokio",
@@ -349,7 +349,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "serde_json",
- "syntropd-toold",
+ "syntrop-toold",
  "syntropd-toold-core",
  "tempfile",
  "tokio",
@@ -544,22 +544,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "syntropd-toolctl"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "clap",
- "clap_complete",
- "serde",
- "serde_json",
- "syntropd-toold-core",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "syntropd-toold"
+name = "syntrop-toold"
 version = "0.2.0"
 dependencies = [
  "anyhow",
@@ -569,6 +554,21 @@ dependencies = [
  "serde_json",
  "syntropd-toold-core",
  "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "syntropd-toolctl"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "clap_complete",
+ "serde",
+ "serde_json",
+ "syntropd-toold-core",
  "tokio",
  "tracing",
  "tracing-subscriber",

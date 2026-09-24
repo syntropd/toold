@@ -1,5 +1,5 @@
 [package]
-name = "syntropd-toold"
+name = "syntrop-toold"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

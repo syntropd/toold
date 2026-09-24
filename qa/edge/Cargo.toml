@@ -11,4 +11,4 @@ serde_json.workspace = true
 tempfile.workspace = true
 tokio.workspace = true
 toold-core = { package = "syntropd-toold-core", path = "../../crates/toold-core" }
-toold-daemon = { package = "syntropd-toold", path = "../../crates/toold-daemon" }
+toold-daemon = { package = "syntrop-toold", path = "../../crates/toold-daemon" }
