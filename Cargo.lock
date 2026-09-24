@@ -337,10 +337,10 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "serde_json",
+ "syntropd-toold",
+ "syntropd-toold-core",
  "tempfile",
  "tokio",
- "toold-core",
- "toold-daemon",
 ]
 
 [[package]]
@@ -349,10 +349,10 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "serde_json",
+ "syntropd-toold",
+ "syntropd-toold-core",
  "tempfile",
  "tokio",
- "toold-core",
- "toold-daemon",
 ]
 
 [[package]]
@@ -544,6 +544,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "syntropd-toolctl"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "clap_complete",
+ "serde",
+ "serde_json",
+ "syntropd-toold-core",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "syntropd-toold"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "libc",
+ "rustix 0.38.44",
+ "serde",
+ "serde_json",
+ "syntropd-toold-core",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "syntropd-toold-core"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "libc",
+ "rustix 0.38.44",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "toml",
+ "tracing",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -653,53 +700,6 @@ name = "toml_write"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
-
-[[package]]
-name = "toolctl"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "clap",
- "clap_complete",
- "serde",
- "serde_json",
- "tokio",
- "toold-core",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "toold-core"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "libc",
- "rustix 0.38.44",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "toold-daemon"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "libc",
- "rustix 0.38.44",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "toold-core",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "tracing"
