@@ -23,6 +23,6 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-toold-core = { package = "syntrop-toold-core", version = "0.2.0", path = "../toold-core" }
+toold-core = { package = "syntrop-toold-core", version = "0.3.0", path = "../toold-core" }
 tracing.workspace = true
 tracing-subscriber.workspace = true
