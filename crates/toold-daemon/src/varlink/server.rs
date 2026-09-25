@@ -26,12 +26,11 @@ pub struct VarlinkServer {
 
 impl VarlinkServer {
     /// Constructs a VarlinkServer from an open UnixListener.
-    pub fn new(listener: UnixListener, handler: Tool1Handler) -> Self {
-        let (_shutdown_tx, shutdown_rx) = watch::channel(false);
+    pub fn new(listener: UnixListener, handler: Tool1Handler, shutdown: watch::Receiver<bool>) -> Self {
         Self {
             listener,
             handler: Arc::new(handler),
-            shutdown: shutdown_rx,
+            shutdown,
         }
     }
 
@@ -46,10 +45,18 @@ impl VarlinkServer {
         loop {
             tokio::select! {
                 biased;
-                _ = shutdown.changed() => {
-                    if *shutdown.borrow() {
-                        info!("Varlink listener shutting down on signal");
-                        return Ok(());
+                res = shutdown.changed() => {
+                    match res {
+                        Ok(()) => {
+                            if *shutdown.borrow() {
+                                info!("Varlink listener shutting down on signal");
+                                return Ok(());
+                            }
+                        }
+                        Err(_) => {
+                            info!("Shutdown channel closed; stopping listener");
+                            return Ok(());
+                        }
                     }
                 }
                 accept = listener.accept() => match accept {
@@ -83,9 +90,16 @@ async fn handle_client(
     loop {
         tokio::select! {
             biased;
-            _ = shutdown.changed() => {
-                if *shutdown.borrow() {
-                    return Ok(());
+            res = shutdown.changed() => {
+                match res {
+                    Ok(()) => {
+                        if *shutdown.borrow() {
+                            return Ok(());
+                        }
+                    }
+                    Err(_) => {
+                        return Ok(());
+                    }
                 }
             }
             read = stream.read(&mut read_chunk) => {
@@ -134,12 +148,14 @@ async fn handle_client(
                             let reply =
                                 VarlinkReply::err("org.varlink.service.InvalidParameter", None);
                             stream.write_all(&reply.to_bytes()).await?;
+                            let _ = stream.flush().await;
                             continue;
                         }
                     };
 
                     let reply = dispatch_call(&call, &handler).await;
                     stream.write_all(&reply.to_bytes()).await?;
+                    let _ = stream.flush().await;
                 }
             }
         }

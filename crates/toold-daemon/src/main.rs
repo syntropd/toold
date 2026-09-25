@@ -60,7 +60,8 @@ async fn main() -> Result<()> {
         }
     };
 
-    let server = VarlinkServer::new(listener, handler);
+    let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);
+    let server = VarlinkServer::new(listener, handler, shutdown_rx);
 
     notify_ready();
     info!("toold successfully initialized and ready");
@@ -76,9 +77,11 @@ async fn main() -> Result<()> {
         }
         _ = sigterm.recv() => {
             info!("Received SIGTERM, initiating shutdown");
+            let _ = shutdown_tx.send(true);
         }
         _ = sigint.recv() => {
             info!("Received SIGINT, initiating shutdown");
+            let _ = shutdown_tx.send(true);
         }
     }
 
