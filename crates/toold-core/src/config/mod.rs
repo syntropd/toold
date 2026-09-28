@@ -2,6 +2,5 @@
 
 pub mod toold_config;
 
-pub use toold_config::{
-    TooldConfig, DEFAULT_CONFIG_PATH, DEFAULT_SOCKET_PATH, DEFAULT_STORAGE_PATH,
-};
+pub use toold_config::TooldConfig;
+pub use toold_config::{DEFAULT_CONFIG_PATH, DEFAULT_SOCKET_PATH, DEFAULT_STORAGE_PATH};

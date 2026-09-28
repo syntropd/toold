@@ -22,10 +22,8 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let mut config_path =
         std::env::var("TOOLD_CONFIG").unwrap_or_else(|_| DEFAULT_CONFIG_PATH.to_string());
-    if let Some(pos) = args.iter().position(|a| a == "--config" || a == "-c") {
-        if let Some(path) = args.get(pos + 1) {
-            config_path = path.clone();
-        }
+    if let Some(path) = config_path_from_args(&args) {
+        config_path = path;
     }
 
     let config = TooldConfig::load_or_default(&config_path)
@@ -88,4 +86,51 @@ async fn main() -> Result<()> {
     notify_stopping();
     info!("toold shutdown completed");
     Ok(())
+}
+
+/// Resolves a `--config`/`-c` path override from raw process arguments.
+///
+/// Pure scan of argv: returns the value following the first config flag,
+/// or `None` when the flag is absent or has no following value.
+fn config_path_from_args(args: &[String]) -> Option<String> {
+    args.iter()
+        .position(|a| a == "--config" || a == "-c")
+        .and_then(|pos| args.get(pos + 1).cloned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn argv(words: &[&str]) -> Vec<String> {
+        words.iter().map(|w| w.to_string()).collect()
+    }
+
+    #[test]
+    fn test_config_flag_long_and_short() {
+        assert_eq!(
+            config_path_from_args(&argv(&["toold", "--config", "/tmp/a.toml"])),
+            Some("/tmp/a.toml".to_string())
+        );
+        assert_eq!(
+            config_path_from_args(&argv(&["toold", "-c", "/tmp/b.toml"])),
+            Some("/tmp/b.toml".to_string())
+        );
+    }
+
+    #[test]
+    fn test_config_flag_absent_or_dangling() {
+        assert_eq!(config_path_from_args(&argv(&["toold"])), None);
+        assert_eq!(config_path_from_args(&argv(&["toold", "--config"])), None);
+        assert_eq!(config_path_from_args(&argv(&["toold", "-c"])), None);
+    }
+
+    #[test]
+    fn test_config_flag_first_wins() {
+        let args = argv(&["toold", "-c", "/tmp/a.toml", "--config", "/tmp/b.toml"]);
+        assert_eq!(
+            config_path_from_args(&args),
+            Some("/tmp/a.toml".to_string())
+        );
+    }
 }

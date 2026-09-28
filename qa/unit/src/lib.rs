@@ -1,6 +1,8 @@
 //! Unit test suite module tree for toold.
 
 #[cfg(test)]
+mod activation_tests;
+#[cfg(test)]
 mod config_tests;
 #[cfg(test)]
 mod registry_tests;

@@ -12,3 +12,4 @@ tempfile.workspace = true
 tokio.workspace = true
 toold-core = { package = "syntrop-toold-core", path = "../../crates/toold-core" }
 toold-daemon = { package = "syntrop-toold", path = "../../crates/toold-daemon" }
+toolctl = { path = "../../crates/toolctl" }

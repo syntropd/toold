@@ -73,3 +73,94 @@ pub enum Commands {
         shell: Shell,
     },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_list_with_defaults() {
+        let cli = Cli::try_parse_from(["toolctl", "list"]).unwrap();
+        assert!(matches!(cli.command, Commands::List));
+        assert!(!cli.json);
+        assert_eq!(cli.socket, PathBuf::from(DEFAULT_SOCKET_PATH));
+    }
+
+    #[test]
+    fn test_parse_global_flags() {
+        let cli = Cli::try_parse_from(["toolctl", "-s", "/tmp/x.sock", "--json", "info"]).unwrap();
+        assert!(cli.json);
+        assert_eq!(cli.socket, PathBuf::from("/tmp/x.sock"));
+        assert!(matches!(cli.command, Commands::Info));
+    }
+
+    #[test]
+    fn test_parse_run_with_unit_and_args() {
+        let cli = Cli::try_parse_from([
+            "toolctl",
+            "run",
+            "unit.status",
+            "-u",
+            "sshd.service",
+            "--",
+            "extra",
+        ])
+        .unwrap();
+        match cli.command {
+            Commands::Run {
+                tool,
+                target_unit,
+                args,
+            } => {
+                assert_eq!(tool, "unit.status");
+                assert_eq!(target_unit.as_deref(), Some("sshd.service"));
+                assert_eq!(args, vec!["extra".to_string()]);
+            }
+            _ => panic!("expected run subcommand"),
+        }
+    }
+
+    #[test]
+    fn test_parse_rollback() {
+        let cli = Cli::try_parse_from(["toolctl", "rollback", "rb-1790235247-1"]).unwrap();
+        match cli.command {
+            Commands::Rollback { rollback_id } => assert_eq!(rollback_id, "rb-1790235247-1"),
+            _ => panic!("expected rollback subcommand"),
+        }
+    }
+
+    #[test]
+    fn test_parse_history_defaults_and_overrides() {
+        let cli = Cli::try_parse_from(["toolctl", "history"]).unwrap();
+        match cli.command {
+            Commands::History { since, limit } => {
+                assert_eq!(since, 86400);
+                assert_eq!(limit, 50);
+            }
+            _ => panic!("expected history subcommand"),
+        }
+        let cli = Cli::try_parse_from(["toolctl", "history", "-w", "60", "-l", "5"]).unwrap();
+        match cli.command {
+            Commands::History { since, limit } => {
+                assert_eq!(since, 60);
+                assert_eq!(limit, 5);
+            }
+            _ => panic!("expected history subcommand"),
+        }
+    }
+
+    #[test]
+    fn test_parse_completions() {
+        let cli = Cli::try_parse_from(["toolctl", "completions", "bash"]).unwrap();
+        match cli.command {
+            Commands::Completions { shell } => assert!(matches!(shell, Shell::Bash)),
+            _ => panic!("expected completions subcommand"),
+        }
+    }
+
+    #[test]
+    fn test_parse_unknown_subcommand_fails() {
+        assert!(Cli::try_parse_from(["toolctl", "bogus"]).is_err());
+        assert!(Cli::try_parse_from(["toolctl", "run"]).is_err());
+    }
+}

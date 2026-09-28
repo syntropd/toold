@@ -7,4 +7,8 @@ mod output_edge;
 #[cfg(test)]
 mod protocol_edge;
 #[cfg(test)]
+mod server_edge;
+#[cfg(test)]
 mod timeout_edge;
+#[cfg(test)]
+mod toolctl_edge;

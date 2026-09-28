@@ -1,7 +1,9 @@
 //! Main binary entry point for toolctl CLI.
 
 use anyhow::Result;
-use clap::{CommandFactory, Parser};
+use clap::{Command, CommandFactory, Parser};
+use clap_complete::{generate, Shell};
+use std::io;
 use toolctl::cli::{Cli, Commands};
 use toolctl::client::TooldClient;
 use toolctl::cmd::*;
@@ -45,4 +47,10 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Generates shell completion script to stdout.
+fn exec_completions(cmd: &mut Command, shell: Shell) {
+    let bin_name = cmd.get_name().to_string();
+    generate(shell, cmd, bin_name, &mut io::stdout());
 }
