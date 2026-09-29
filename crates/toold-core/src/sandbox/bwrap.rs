@@ -15,13 +15,34 @@ pub fn find_bwrap_binary() -> Option<PathBuf> {
     None
 }
 
-/// Construct a sandboxed Bubblewrap command if `bwrap` is installed.
+/// Check if `bwrap` can actually execute in the current host environment
+/// (e.g. unprivileged user namespaces and mount propagation are permitted).
+pub fn is_bwrap_supported() -> bool {
+    static SUPPORTED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *SUPPORTED.get_or_init(|| {
+        let Some(bwrap) = find_bwrap_binary() else {
+            return false;
+        };
+        std::process::Command::new(bwrap)
+            .args(["--ro-bind", "/", "/", "true"])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
+    })
+}
+
+/// Construct a sandboxed Bubblewrap command if `bwrap` is installed and operational.
 /// Applies namespace isolation, system read-only mounts, and isolated tmpfs.
 pub fn build_bwrap_command(
     tool: &ToolDefinition,
     user_args: &[String],
     working_dir: Option<&Path>,
 ) -> Option<Command> {
+    if !is_bwrap_supported() {
+        return None;
+    }
     let bwrap = find_bwrap_binary()?;
     let mut cmd = Command::new(bwrap);
 
