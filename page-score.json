@@ -1,7 +1,7 @@
 {
  "repo": "toold",
- "rev": "3a11dde",
- "dirty": false,
+ "rev": "eff9e53",
+ "dirty": true,
  "pages": [
   {
    "path": "./crates/toolctl/src/client.rs",
@@ -141,7 +141,14 @@
    "lines": 79,
    "bin_bytes": null,
    "heat_pct": null,
-   "reach": 4
+   "reach": 5
+  },
+  {
+   "path": "./crates/toold-core/src/sandbox/bwrap.rs",
+   "lines": 99,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 2
   },
   {
    "path": "./crates/toold-core/src/sandbox/landlock.rs",
@@ -152,14 +159,14 @@
   },
   {
    "path": "./crates/toold-core/src/sandbox/mod.rs",
-   "lines": 6,
+   "lines": 8,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
   },
   {
    "path": "./crates/toold-core/src/sandbox/runner.rs",
-   "lines": 150,
+   "lines": 149,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1

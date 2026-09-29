@@ -1,0 +1,99 @@
+//! Bubblewrap unprivileged container sandbox builder with Landlock fallback.
+
+use crate::policy::rule::ToolDefinition;
+use std::path::{Path, PathBuf};
+use tokio::process::Command;
+
+/// Check if `bwrap` binary is available on the system.
+pub fn find_bwrap_binary() -> Option<PathBuf> {
+    for candidate in &["/usr/bin/bwrap", "/bin/bwrap", "/usr/local/bin/bwrap"] {
+        let path = PathBuf::from(candidate);
+        if path.exists() {
+            return Some(path);
+        }
+    }
+    None
+}
+
+/// Construct a sandboxed Bubblewrap command if `bwrap` is installed.
+/// Applies namespace isolation, system read-only mounts, and isolated tmpfs.
+pub fn build_bwrap_command(
+    tool: &ToolDefinition,
+    user_args: &[String],
+    working_dir: Option<&Path>,
+) -> Option<Command> {
+    let bwrap = find_bwrap_binary()?;
+    let mut cmd = Command::new(bwrap);
+
+    // Namespace isolation and lifecycle containment
+    cmd.arg("--unshare-user");
+    cmd.arg("--unshare-ipc");
+    cmd.arg("--unshare-pid");
+    cmd.arg("--unshare-uts");
+    cmd.arg("--unshare-cgroup");
+    cmd.arg("--unshare-net");
+    cmd.arg("--die-with-parent");
+
+    // Standard root read-only system binds
+    for dir in &["/usr", "/bin", "/sbin", "/lib", "/lib64"] {
+        if Path::new(dir).exists() {
+            cmd.arg("--ro-bind").arg(dir).arg(dir);
+        }
+    }
+    if Path::new("/etc").exists() {
+        cmd.arg("--ro-bind").arg("/etc").arg("/etc");
+    }
+    if Path::new("/dev").exists() {
+        cmd.arg("--dev").arg("/dev");
+    }
+    if Path::new("/proc").exists() {
+        cmd.arg("--proc").arg("/proc");
+    }
+
+    // Ephemeral scratch isolation
+    cmd.arg("--tmpfs").arg("/tmp");
+    cmd.arg("--tmpfs").arg("/run");
+
+    // Whitelisted path binds from tool policy
+    for ro in &tool.read_paths {
+        if ro.exists() {
+            cmd.arg("--ro-bind").arg(ro).arg(ro);
+        }
+    }
+    let has_tmp_write = tool.write_paths.iter().any(|p| p.starts_with("/tmp"));
+    for rw in &tool.write_paths {
+        if rw.exists() {
+            cmd.arg("--bind").arg(rw).arg(rw);
+        }
+    }
+    if !has_tmp_write {
+        cmd.arg("--remount-ro").arg("/tmp");
+    }
+
+    let cwd = working_dir.unwrap_or(Path::new("/run"));
+    cmd.arg("--chdir").arg(cwd);
+
+    // Target executable boundary
+    cmd.arg("--").arg(&tool.binary_path);
+    for arg in &tool.fixed_args {
+        cmd.arg(arg);
+    }
+    for arg in user_args {
+        cmd.arg(arg);
+    }
+
+    Some(cmd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_find_bwrap_or_none() {
+        let bwrap = find_bwrap_binary();
+        if let Some(path) = bwrap {
+            assert!(path.exists());
+        }
+    }
+}

@@ -12,6 +12,7 @@ Sandboxed Agentic Action and Diagnostic Execution Daemon for the Syntropd OS Sui
 ## Features
 
 - **Strict Tool Allowlisting**: Only verified declarative tool definitions can execute.
+- **Unprivileged Bubblewrap & Landlock Sandboxing**: Executes remediation actions in isolated user and network namespaces with read-only bindings and strict path permissions.
 - **Pre-Execution Rollback Snapshots**: Automatically captures original configuration state before mutating operations and provides one-click restoration.
 - **Timeout and Resource Containment**: Enforces execution timeouts and output buffer truncation to prevent resource exhaustion.
 - **Pure Rust Varlink IPC**: Native implementation of `io.syntrop.Tool1` over Unix domain sockets with socket activation.

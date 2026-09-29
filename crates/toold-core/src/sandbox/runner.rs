@@ -51,20 +51,19 @@ pub async fn execute_tool(
         )));
     }
 
-    let mut cmd = Command::new(&tool.binary_path);
-
-    // Append fixed arguments first, then validated user arguments
-    for arg in &tool.fixed_args {
-        cmd.arg(arg);
-    }
-    for arg in user_args {
-        cmd.arg(arg);
-    }
-
-    // Default CWD inside the Landlock profile: inheriting the
-    // daemon's CWD (/) leaves getcwd() outside the ruleset, which
-    // aborts tools like systemd-analyze that resolve it.
-    cmd.current_dir(working_dir.unwrap_or(Path::new("/run")));
+    let (mut cmd, uses_bwrap) = if let Some(bwrap_cmd) = super::bwrap::build_bwrap_command(tool, user_args, working_dir) {
+        (bwrap_cmd, true)
+    } else {
+        let mut fallback = Command::new(&tool.binary_path);
+        for arg in &tool.fixed_args {
+            fallback.arg(arg);
+        }
+        for arg in user_args {
+            fallback.arg(arg);
+        }
+        fallback.current_dir(working_dir.unwrap_or(Path::new("/run")));
+        (fallback, false)
+    };
 
     // Clean execution environment
     cmd.env_clear();
@@ -75,20 +74,20 @@ pub async fn execute_tool(
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
 
-    // Landlock confinement: ruleset built here in the parent
-    // (fail-early); only the final restrict syscalls run in the
-    // child post-fork. A spawn failure carries the sandbox error.
-    let mut ruleset = Some(landlock::build_ruleset(tool)?);
-    // SAFETY: pre_exec runs once per spawn, post-fork pre-exec; the
-    // closure only takes the prebuilt ruleset and issues syscalls.
-    unsafe {
-        cmd.pre_exec(move || {
-            let rs = ruleset
-                .take()
-                .ok_or_else(|| std::io::Error::other("landlock ruleset already applied"))?;
-            landlock::restrict_child(rs)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e.to_string()))
-        });
+    if !uses_bwrap {
+        // Landlock confinement: ruleset built here in the parent
+        let mut ruleset = Some(landlock::build_ruleset(tool)?);
+        // SAFETY: pre_exec runs once per spawn, post-fork pre-exec; the
+        // closure only takes the prebuilt ruleset and issues syscalls.
+        unsafe {
+            cmd.pre_exec(move || {
+                let rs = ruleset
+                    .take()
+                    .ok_or_else(|| std::io::Error::other("landlock ruleset already applied"))?;
+                landlock::restrict_child(rs)
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e.to_string()))
+            });
+        }
     }
 
     let start = Instant::now();
