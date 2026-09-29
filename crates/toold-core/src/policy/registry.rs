@@ -85,7 +85,7 @@ impl ToolRegistry {
             "syntax.verify",
             "Verifies unit configuration syntax without starting the service",
             "/usr/bin/systemd-analyze",
-            vec!["verify".into()],
+            vec!["verify".into(), "--man=no".into()],
             5000,
         );
         verify.write_paths.push(PathBuf::from("/tmp"));
