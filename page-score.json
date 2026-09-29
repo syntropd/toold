@@ -1,40 +1,40 @@
 {
  "repo": "toold",
- "rev": "ff0f2d8",
- "dirty": true,
+ "rev": "3a11dde",
+ "dirty": false,
  "pages": [
   {
    "path": "./crates/toolctl/src/client.rs",
    "lines": 95,
-   "bin_bytes": 10376,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 8
   },
   {
    "path": "./crates/toolctl/src/cli.rs",
    "lines": 166,
-   "bin_bytes": 37095,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
   },
   {
    "path": "./crates/toolctl/src/cmd/history_cmd.rs",
    "lines": 51,
-   "bin_bytes": 4426,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toolctl/src/cmd/info_cmd.rs",
    "lines": 49,
-   "bin_bytes": 5314,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toolctl/src/cmd/list_cmd.rs",
    "lines": 43,
-   "bin_bytes": 3652,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
@@ -48,14 +48,14 @@
   {
    "path": "./crates/toolctl/src/cmd/rollback_cmd.rs",
    "lines": 37,
-   "bin_bytes": 3197,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toolctl/src/cmd/run_cmd.rs",
    "lines": 61,
-   "bin_bytes": 5284,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
@@ -90,16 +90,16 @@
   {
    "path": "./crates/toold-core/src/config/toold_config.rs",
    "lines": 52,
-   "bin_bytes": 301,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toold-core/src/error.rs",
    "lines": 100,
-   "bin_bytes": 1724,
+   "bin_bytes": null,
    "heat_pct": null,
-   "reach": 6
+   "reach": 7
   },
   {
    "path": "./crates/toold-core/src/journal/mod.rs",
@@ -111,7 +111,7 @@
   {
    "path": "./crates/toold-core/src/journal/rollback.rs",
    "lines": 168,
-   "bin_bytes": 17214,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
   },
@@ -131,29 +131,36 @@
   },
   {
    "path": "./crates/toold-core/src/policy/registry.rs",
-   "lines": 93,
-   "bin_bytes": 4796,
+   "lines": 98,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toold-core/src/policy/rule.rs",
    "lines": 79,
-   "bin_bytes": 3578,
+   "bin_bytes": null,
    "heat_pct": null,
-   "reach": 3
+   "reach": 4
+  },
+  {
+   "path": "./crates/toold-core/src/sandbox/landlock.rs",
+   "lines": 150,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 1
   },
   {
    "path": "./crates/toold-core/src/sandbox/mod.rs",
-   "lines": 5,
+   "lines": 6,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
   },
   {
    "path": "./crates/toold-core/src/sandbox/runner.rs",
-   "lines": 119,
-   "bin_bytes": 7377,
+   "lines": 150,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
@@ -167,7 +174,7 @@
   {
    "path": "./crates/toold-daemon/src/activation.rs",
    "lines": 67,
-   "bin_bytes": 4496,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 3
   },
@@ -188,7 +195,7 @@
   {
    "path": "./crates/toold-daemon/src/notify.rs",
    "lines": 130,
-   "bin_bytes": 2146,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
   },
@@ -202,28 +209,28 @@
   {
    "path": "./crates/toold-daemon/src/varlink/protocol.rs",
    "lines": 57,
-   "bin_bytes": 2645,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 5
   },
   {
    "path": "./crates/toold-daemon/src/varlink/server.rs",
    "lines": 180,
-   "bin_bytes": 449,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
    "path": "./crates/toold-daemon/src/varlink/service.rs",
    "lines": 76,
-   "bin_bytes": 5284,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
   },
   {
    "path": "./crates/toold-daemon/src/varlink/tool1.rs",
    "lines": 165,
-   "bin_bytes": 8278,
+   "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
   },
@@ -238,12 +245,12 @@
    "path": "./qa/edge/src/lib.rs",
    "lines": 14,
    "bin_bytes": null,
-   "heat_pct": 9.09,
+   "heat_pct": null,
    "reach": 0
   },
   {
    "path": "./qa/edge/src/output_edge.rs",
-   "lines": 25,
+   "lines": 27,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -299,7 +306,7 @@
   },
   {
    "path": "./qa/unit/src/registry_tests.rs",
-   "lines": 42,
+   "lines": 51,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -320,7 +327,7 @@
   },
   {
    "path": "./qa/unit/src/runner_tests.rs",
-   "lines": 59,
+   "lines": 122,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -333,5 +340,5 @@
    "reach": 0
   }
  ],
- "notes": "reach counts referencing files (shared file names qualified by ancestor dir); bin_bytes from newest workspace dev rlib per crate via nm (inlining approx, bins re-link the same code; shims excluded, foreign paths never attributed); heat from 110 attributed samples over 12/111 binaries at 10Hz incl. one child level; every repo-resolving frame counts;"
+ "notes": "reach counts referencing files (shared file names qualified by ancestor dir);"
 }
