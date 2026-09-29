@@ -9,7 +9,15 @@ Type=notify
 ExecStart=/usr/local/bin/toold
 Restart=on-failure
 RestartSec=2s
-WatchdogSec=30s
+
+# No WatchdogSec: the daemon sends READY/STOPPING but no WATCHDOG=1
+# pings, so a watchdog would kill it on a timer.
+
+# Unprivileged execution (privileged remediation via polkit rule)
+User=syntrop-tool
+Group=syntrop
+SupplementaryGroups=systemd-journal
+NoNewPrivileges=yes
 
 # Hardened sandboxing
 ProtectSystem=strict

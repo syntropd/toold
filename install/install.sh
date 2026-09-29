@@ -34,6 +34,12 @@ echo "==> Installing systemd units..."
 install -m 0644 "${ROOT_DIR}/systemd/toold.socket" /usr/lib/systemd/system/toold.socket
 install -m 0644 "${ROOT_DIR}/systemd/toold.service" /usr/lib/systemd/system/toold.service
 
+if [[ -f "${ROOT_DIR}/polkit/49-syntrop-tool.rules" ]]; then
+    echo "==> Installing polkit rule for fleet restarts..."
+    mkdir -p /etc/polkit-1/rules.d
+    install -m 0644 "${ROOT_DIR}/polkit/49-syntrop-tool.rules" /etc/polkit-1/rules.d/49-syntrop-tool.rules
+fi
+
 echo "==> Reloading systemd daemon..."
 systemctl daemon-reload
 systemctl enable --now toold.socket

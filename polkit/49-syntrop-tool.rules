@@ -1,0 +1,16 @@
+// toold self-healing: let the unprivileged daemon user restart fleet
+// units (the unit.restart tool). Narrow by verb AND unit name —
+// anything else falls through to the default policy (deny).
+polkit.addRule(function(action, subject) {
+    if (action.id != "org.freedesktop.systemd1.manage-units") return;
+    if (subject.user != "syntrop-tool") return;
+    if (action.lookup("verb") != "restart") return;
+    var unit = action.lookup("unit");
+    var units = (typeof unit == "string") ? [unit] : unit;
+    if (!units || !units.length) return;
+    var fleet = /^(syntrop-|routerd|runtimed|inferenced|modeld|contextd|toold|sentry|systemd-sentry|syntropd)[\w@.:-]*$/;
+    for (var i = 0; i < units.length; i++) {
+        if (!fleet.test(units[i])) return;
+    }
+    return polkit.Result.YES;
+});
