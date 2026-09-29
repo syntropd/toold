@@ -61,7 +61,12 @@ impl ToolRegistry {
             "journal.slice",
             "Reads recent log messages for a target systemd unit",
             "/usr/bin/journalctl",
-            vec!["--no-pager".into(), "-o".into(), "short-iso".into(), "-u".into()],
+            vec![
+                "--no-pager".into(),
+                "-o".into(),
+                "short-iso".into(),
+                "-u".into(),
+            ],
             8000,
         ));
 

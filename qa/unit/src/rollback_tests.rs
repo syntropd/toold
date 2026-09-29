@@ -26,12 +26,18 @@ mod tests {
 
         // Mutate file
         fs::write(&target_file, "original_content=2\n").unwrap();
-        assert_eq!(fs::read_to_string(&target_file).unwrap(), "original_content=2\n");
+        assert_eq!(
+            fs::read_to_string(&target_file).unwrap(),
+            "original_content=2\n"
+        );
 
         // Apply rollback
         let restored = journal.apply_rollback(&record.id).unwrap();
         assert_eq!(restored.id, record.id);
-        assert_eq!(fs::read_to_string(&target_file).unwrap(), "original_content=1\n");
+        assert_eq!(
+            fs::read_to_string(&target_file).unwrap(),
+            "original_content=1\n"
+        );
     }
 
     #[test]
@@ -70,7 +76,9 @@ mod tests {
         let limited = journal.list_records(0, 1).unwrap();
         assert_eq!(limited.len(), 1);
 
-        let future = journal.list_records(rec2.timestamp_us + 1_000_000, 10).unwrap();
+        let future = journal
+            .list_records(rec2.timestamp_us + 1_000_000, 10)
+            .unwrap();
         assert!(future.is_empty());
     }
 }

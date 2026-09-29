@@ -26,7 +26,11 @@ pub struct VarlinkServer {
 
 impl VarlinkServer {
     /// Constructs a VarlinkServer from an open UnixListener.
-    pub fn new(listener: UnixListener, handler: Tool1Handler, shutdown: watch::Receiver<bool>) -> Self {
+    pub fn new(
+        listener: UnixListener,
+        handler: Tool1Handler,
+        shutdown: watch::Receiver<bool>,
+    ) -> Self {
         Self {
             listener,
             handler: Arc::new(handler),
@@ -169,7 +173,10 @@ async fn dispatch_call(call: &VarlinkCall, handler: &Tool1Handler) -> VarlinkRep
         return reply;
     }
 
-    if let Some(reply) = handler.handle_call(&call.method, call.parameters.as_ref()).await {
+    if let Some(reply) = handler
+        .handle_call(&call.method, call.parameters.as_ref())
+        .await
+    {
         return reply;
     }
 

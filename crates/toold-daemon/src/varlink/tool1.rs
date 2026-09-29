@@ -118,7 +118,10 @@ impl Tool1Handler {
     }
 
     fn handle_rollback(&self, params: Option<&Value>) -> VarlinkReply {
-        let rollback_id = match params.and_then(|p| p.get("rollback_id")).and_then(|id| id.as_str()) {
+        let rollback_id = match params
+            .and_then(|p| p.get("rollback_id"))
+            .and_then(|id| id.as_str())
+        {
             Some(id) => id,
             None => {
                 return VarlinkReply::err(

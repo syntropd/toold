@@ -21,7 +21,11 @@ mod tests {
         assert!(res.is_ok());
         let output = res.unwrap();
         assert_eq!(output.exit_code, 0);
-        assert!(output.stdout.len() > 65536, "short read: {}", output.stdout.len());
+        assert!(
+            output.stdout.len() > 65536,
+            "short read: {}",
+            output.stdout.len()
+        );
         assert!(output.stdout.contains("30000"));
     }
 }

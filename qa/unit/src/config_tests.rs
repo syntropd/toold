@@ -4,9 +4,7 @@
 mod tests {
     use std::fs;
     use tempfile::tempdir;
-    use toold_core::config::{
-        TooldConfig, DEFAULT_SOCKET_PATH, DEFAULT_STORAGE_PATH,
-    };
+    use toold_core::config::{TooldConfig, DEFAULT_SOCKET_PATH, DEFAULT_STORAGE_PATH};
 
     #[test]
     fn test_default_config() {

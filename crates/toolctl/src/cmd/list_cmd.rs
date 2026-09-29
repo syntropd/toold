@@ -23,7 +23,10 @@ pub async fn exec_list(client: &TooldClient, as_json: bool) -> Result<()> {
         return Ok(());
     }
 
-    println!("{:<18} {:<24} {:<10} {}", "TOOL NAME", "MODE", "TIMEOUT", "DESCRIPTION");
+    println!(
+        "{:<18} {:<24} {:<10} {}",
+        "TOOL NAME", "MODE", "TIMEOUT", "DESCRIPTION"
+    );
     println!("{}", "-".repeat(80));
 
     for tool in tools {
@@ -34,7 +37,10 @@ pub async fn exec_list(client: &TooldClient, as_json: bool) -> Result<()> {
             .and_then(|v| v.as_u64())
             .map(|t| format!("{}ms", t))
             .unwrap_or_else(|| "-".into());
-        let desc = tool.get("description").and_then(|v| v.as_str()).unwrap_or("-");
+        let desc = tool
+            .get("description")
+            .and_then(|v| v.as_str())
+            .unwrap_or("-");
 
         println!("{:<18} {:<24} {:<10} {}", name, mode, timeout, desc);
     }

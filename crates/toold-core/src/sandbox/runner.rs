@@ -51,23 +51,27 @@ pub async fn execute_tool(
         )));
     }
 
-    let (mut cmd, uses_bwrap) = if let Some(bwrap_cmd) = super::bwrap::build_bwrap_command(tool, user_args, working_dir) {
-        (bwrap_cmd, true)
-    } else {
-        let mut fallback = Command::new(&tool.binary_path);
-        for arg in &tool.fixed_args {
-            fallback.arg(arg);
-        }
-        for arg in user_args {
-            fallback.arg(arg);
-        }
-        fallback.current_dir(working_dir.unwrap_or(Path::new("/run")));
-        (fallback, false)
-    };
+    let (mut cmd, uses_bwrap) =
+        if let Some(bwrap_cmd) = super::bwrap::build_bwrap_command(tool, user_args, working_dir) {
+            (bwrap_cmd, true)
+        } else {
+            let mut fallback = Command::new(&tool.binary_path);
+            for arg in &tool.fixed_args {
+                fallback.arg(arg);
+            }
+            for arg in user_args {
+                fallback.arg(arg);
+            }
+            fallback.current_dir(working_dir.unwrap_or(Path::new("/run")));
+            (fallback, false)
+        };
 
     // Clean execution environment
     cmd.env_clear();
-    cmd.env("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin");
+    cmd.env(
+        "PATH",
+        "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin",
+    );
     cmd.env("LANG", "C.UTF-8");
     cmd.env("LC_ALL", "C.UTF-8");
 
@@ -84,8 +88,9 @@ pub async fn execute_tool(
                 let rs = ruleset
                     .take()
                     .ok_or_else(|| std::io::Error::other("landlock ruleset already applied"))?;
-                landlock::restrict_child(rs)
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e.to_string()))
+                landlock::restrict_child(rs).map_err(|e| {
+                    std::io::Error::new(std::io::ErrorKind::PermissionDenied, e.to_string())
+                })
             });
         }
     }

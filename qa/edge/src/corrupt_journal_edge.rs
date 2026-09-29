@@ -20,8 +20,10 @@ mod tests {
         let log_file = tmp.path().join("rollback.jsonl");
         {
             let mut f = OpenOptions::new().append(true).open(&log_file).unwrap();
-            f.write_all(b"{\"invalid\": json without closure\n").unwrap();
-            f.write_all(b"\x00\xFF\xAA non utf8 binary garbage\n").unwrap();
+            f.write_all(b"{\"invalid\": json without closure\n")
+                .unwrap();
+            f.write_all(b"\x00\xFF\xAA non utf8 binary garbage\n")
+                .unwrap();
             f.write_all(b"\n   \n\t\n").unwrap();
         }
 

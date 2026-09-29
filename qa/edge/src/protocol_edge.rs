@@ -21,8 +21,7 @@ mod tests {
         let reply = VarlinkReply::err("CustomError", None);
         let bytes = reply.to_bytes();
         assert_eq!(*bytes.last().unwrap(), 0x00);
-        let parsed: serde_json::Value =
-            serde_json::from_slice(&bytes[..bytes.len() - 1]).unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&bytes[..bytes.len() - 1]).unwrap();
         assert_eq!(parsed["error"], "CustomError");
     }
 }

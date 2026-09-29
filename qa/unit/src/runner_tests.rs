@@ -66,7 +66,14 @@ mod tests {
         }
         let registry = toold_core::policy::ToolRegistry::with_defaults();
         let tool = registry.get("syntax.verify").unwrap();
-        let res = execute_tool(&tool, &["routerd.service".to_string()], None).await;
+        let unit = if std::path::Path::new("/lib/systemd/system/systemd-journald.service").exists()
+            || std::path::Path::new("/usr/lib/systemd/system/systemd-journald.service").exists()
+        {
+            "systemd-journald.service"
+        } else {
+            "routerd.service"
+        };
+        let res = execute_tool(&tool, &[unit.to_string()], None).await;
         assert!(res.is_ok(), "confined verify failed: {res:?}");
     }
 
@@ -82,7 +89,8 @@ mod tests {
     async fn test_landlock_denies_writes_outside_profile() {
         // /tmp is outside every tool profile: the write must fail and
         // no file may appear. Passes only under real enforcement.
-        let target = std::env::temp_dir().join(format!("landlock-denied-{}.tmp", std::process::id()));
+        let target =
+            std::env::temp_dir().join(format!("landlock-denied-{}.tmp", std::process::id()));
         let _ = std::fs::remove_file(&target);
         let tool = ToolDefinition::read_only(
             "test.touch-deny",

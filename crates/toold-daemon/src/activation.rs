@@ -18,12 +18,17 @@ pub struct ActivatedSockets {
 /// Parses systemd environment variables and adopts pre-bound Unix sockets.
 pub fn parse_listen_fds() -> ActivatedSockets {
     let pid_matches = match env::var("LISTEN_PID") {
-        Ok(pid_str) => pid_str.parse::<u32>().map(|p| p == std::process::id()).unwrap_or(false),
+        Ok(pid_str) => pid_str
+            .parse::<u32>()
+            .map(|p| p == std::process::id())
+            .unwrap_or(false),
         Err(_) => false,
     };
 
     if !pid_matches {
-        return ActivatedSockets { varlink_listener: None };
+        return ActivatedSockets {
+            varlink_listener: None,
+        };
     }
 
     let count: usize = env::var("LISTEN_FDS")

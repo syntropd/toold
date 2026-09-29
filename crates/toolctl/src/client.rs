@@ -42,7 +42,9 @@ impl TooldClient {
     pub async fn call(&self, method: &str, parameters: Option<Value>) -> Result<Value> {
         let mut stream = UnixStream::connect(&self.socket_path)
             .await
-            .with_context(|| format!("Failed to connect to toold socket at {}", self.socket_path))?;
+            .with_context(|| {
+                format!("Failed to connect to toold socket at {}", self.socket_path)
+            })?;
 
         let request = VarlinkRequest { method, parameters };
         let mut req_bytes = serde_json::to_vec(&request)?;

@@ -10,7 +10,9 @@ pub async fn exec_rollback(client: &TooldClient, rollback_id: &str, as_json: boo
         "rollback_id": rollback_id,
     });
 
-    let reply = client.call("io.syntrop.Tool1.Rollback", Some(params)).await?;
+    let reply = client
+        .call("io.syntrop.Tool1.Rollback", Some(params))
+        .await?;
 
     if as_json {
         println!("{}", serde_json::to_string_pretty(&reply)?);

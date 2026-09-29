@@ -87,17 +87,18 @@ impl RollbackJournal {
     }
 
     fn append(&self, record: &RollbackRecord) -> Result<(), TooldError> {
-        let _guard = self.lock.lock().map_err(|_| {
-            TooldError::Journal("Rollback mutex poisoned".into())
-        })?;
+        let _guard = self
+            .lock
+            .lock()
+            .map_err(|_| TooldError::Journal("Rollback mutex poisoned".into()))?;
 
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
             .open(&self.log_path)?;
 
-        let mut line = serde_json::to_vec(record)
-            .map_err(|e| TooldError::Journal(e.to_string()))?;
+        let mut line =
+            serde_json::to_vec(record).map_err(|e| TooldError::Journal(e.to_string()))?;
         line.push(b'\n');
 
         file.write_all(&line)?;
@@ -133,7 +134,11 @@ impl RollbackJournal {
     }
 
     /// Lists historical rollback snapshot records.
-    pub fn list_records(&self, since_us: u64, limit: usize) -> Result<Vec<RollbackRecord>, TooldError> {
+    pub fn list_records(
+        &self,
+        since_us: u64,
+        limit: usize,
+    ) -> Result<Vec<RollbackRecord>, TooldError> {
         if !self.log_path.exists() {
             return Ok(Vec::new());
         }

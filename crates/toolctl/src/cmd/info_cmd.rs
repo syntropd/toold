@@ -13,10 +13,22 @@ pub async fn exec_info(client: &TooldClient, as_json: bool) -> Result<()> {
         return Ok(());
     }
 
-    let vendor = info.get("vendor").and_then(|v| v.as_str()).unwrap_or("unknown");
-    let product = info.get("product").and_then(|p| p.as_str()).unwrap_or("unknown");
-    let version = info.get("version").and_then(|v| v.as_str()).unwrap_or("unknown");
-    let url = info.get("url").and_then(|u| u.as_str()).unwrap_or("unknown");
+    let vendor = info
+        .get("vendor")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let product = info
+        .get("product")
+        .and_then(|p| p.as_str())
+        .unwrap_or("unknown");
+    let version = info
+        .get("version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let url = info
+        .get("url")
+        .and_then(|u| u.as_str())
+        .unwrap_or("unknown");
 
     println!("Toold Daemon Info:");
     println!("  Product: {} ({})", product, vendor);

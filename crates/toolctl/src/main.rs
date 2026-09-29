@@ -22,14 +22,7 @@ async fn main() -> Result<()> {
             target_unit,
             args,
         } => {
-            exec_run(
-                &client,
-                &tool,
-                &args,
-                target_unit.as_deref(),
-                cli.json,
-            )
-            .await?;
+            exec_run(&client, &tool, &args, target_unit.as_deref(), cli.json).await?;
         }
         Commands::Rollback { rollback_id } => {
             exec_rollback(&client, &rollback_id, cli.json).await?;

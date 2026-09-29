@@ -26,11 +26,10 @@ async fn main() -> Result<()> {
         config_path = path;
     }
 
-    let config = TooldConfig::load_or_default(&config_path)
-        .context("Failed loading toold configuration")?;
+    let config =
+        TooldConfig::load_or_default(&config_path).context("Failed loading toold configuration")?;
 
-    fs::create_dir_all(&config.storage_path)
-        .context("Failed creating storage directory")?;
+    fs::create_dir_all(&config.storage_path).context("Failed creating storage directory")?;
 
     let registry = Arc::new(ToolRegistry::with_defaults());
     let journal = Arc::new(RollbackJournal::new(&config.storage_path)?);

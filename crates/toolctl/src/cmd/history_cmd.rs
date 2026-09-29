@@ -41,7 +41,10 @@ pub async fn exec_history(
 
     for rec in records {
         let id = rec.get("id").and_then(|v| v.as_str()).unwrap_or("-");
-        let unit = rec.get("target_unit").and_then(|v| v.as_str()).unwrap_or("-");
+        let unit = rec
+            .get("target_unit")
+            .and_then(|v| v.as_str())
+            .unwrap_or("-");
         let summary = rec.get("summary").and_then(|v| v.as_str()).unwrap_or("-");
 
         println!("{:<28} {:<24} {}", id, unit, summary);

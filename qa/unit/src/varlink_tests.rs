@@ -7,17 +7,14 @@ mod tests {
     use tempfile::tempdir;
     use toold_core::journal::RollbackJournal;
     use toold_core::policy::ToolRegistry;
-    use toold_daemon::varlink::{
-        handle_service_call, Tool1Handler, VarlinkReply,
-    };
+    use toold_daemon::varlink::{handle_service_call, Tool1Handler, VarlinkReply};
 
     #[test]
     fn test_varlink_reply_to_bytes() {
         let reply = VarlinkReply::ok(json!({ "status": "ok" }));
         let bytes = reply.to_bytes();
         assert_eq!(*bytes.last().unwrap(), 0x00);
-        let parsed: serde_json::Value =
-            serde_json::from_slice(&bytes[..bytes.len() - 1]).unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&bytes[..bytes.len() - 1]).unwrap();
         assert_eq!(parsed["parameters"]["status"], "ok");
     }
 
@@ -32,10 +29,8 @@ mod tests {
     #[test]
     fn test_handle_service_get_interface_description() {
         let params = json!({ "interface": "io.syntrop.Tool1" });
-        let reply = handle_service_call(
-            "org.varlink.service.GetInterfaceDescription",
-            Some(&params),
-        );
+        let reply =
+            handle_service_call("org.varlink.service.GetInterfaceDescription", Some(&params));
         assert!(reply.is_some());
         let desc = reply.unwrap().parameters.unwrap();
         assert!(desc["description"]
