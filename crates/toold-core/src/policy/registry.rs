@@ -61,7 +61,7 @@ impl ToolRegistry {
             "journal.slice",
             "Reads recent log messages for a target systemd unit",
             "/usr/bin/journalctl",
-            vec!["--no-pager".into(), "-o".into(), "short-iso".into()],
+            vec!["--no-pager".into(), "-o".into(), "short-iso".into(), "-u".into()],
             8000,
         ));
 
@@ -73,13 +73,18 @@ impl ToolRegistry {
             5000,
         ));
 
-        self.register(ToolDefinition::read_only(
+        // Scratch, not system state: verify stages temp files under
+        // /tmp (private-namespaced by the unit's PrivateTmp), so the
+        // read-only tool still needs that one write path to run.
+        let mut verify = ToolDefinition::read_only(
             "syntax.verify",
             "Verifies unit configuration syntax without starting the service",
             "/usr/bin/systemd-analyze",
             vec!["verify".into()],
             5000,
-        ));
+        );
+        verify.write_paths.push(PathBuf::from("/tmp"));
+        self.register(verify);
 
         self.register(ToolDefinition::remediate(
             "unit.restart",

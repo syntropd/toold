@@ -56,4 +56,67 @@ mod tests {
         let res = execute_tool(&tool, &[], None).await;
         assert!(matches!(res, Err(TooldError::ToolNotFound(_))));
     }
+
+    #[tokio::test]
+    async fn test_syntax_verify_runs_confined() {
+        // The real analyzer under the real profile: needs its /tmp
+        // scratch grant (regresses without it). Skips off-systemd.
+        if !std::path::Path::new("/usr/bin/systemd-analyze").exists() {
+            return;
+        }
+        let registry = toold_core::policy::ToolRegistry::with_defaults();
+        let tool = registry.get("syntax.verify").unwrap();
+        let res = execute_tool(&tool, &["routerd.service".to_string()], None).await;
+        assert!(res.is_ok(), "confined verify failed: {res:?}");
+    }
+
+    #[tokio::test]
+    async fn test_child_cwd_defaults_inside_profile() {
+        // CWD must resolve under Landlock (analyzers call getcwd).
+        let tool = ToolDefinition::read_only("test.pwd", "Print CWD", "/usr/bin/pwd", vec![], 2000);
+        let res = execute_tool(&tool, &[], None).await.unwrap();
+        assert_eq!(res.stdout, "/run");
+    }
+
+    #[tokio::test]
+    async fn test_landlock_denies_writes_outside_profile() {
+        // /tmp is outside every tool profile: the write must fail and
+        // no file may appear. Passes only under real enforcement.
+        let target = std::env::temp_dir().join(format!("landlock-denied-{}.tmp", std::process::id()));
+        let _ = std::fs::remove_file(&target);
+        let tool = ToolDefinition::read_only(
+            "test.touch-deny",
+            "Probe write outside profile",
+            "/usr/bin/touch",
+            vec![],
+            5000,
+        );
+
+        let res = execute_tool(&tool, &[target.to_string_lossy().to_string()], None).await;
+        assert!(res.is_err(), "write outside profile unexpectedly allowed");
+        assert!(!target.exists(), "denied write left a file behind");
+        let _ = std::fs::remove_file(&target);
+    }
+
+    #[tokio::test]
+    async fn test_landlock_honors_write_paths() {
+        // A declared write path must stay writable under enforcement.
+        let dir = std::env::temp_dir().join(format!("landlock-allowed-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("probe.tmp");
+        let tool = ToolDefinition::remediate(
+            "test.touch-allow",
+            "Probe write inside declared path",
+            "/usr/bin/touch",
+            vec![],
+            5000,
+            vec![dir.clone()],
+        );
+
+        let res = execute_tool(&tool, &[target.to_string_lossy().to_string()], None).await;
+        assert!(res.is_ok(), "declared write path denied: {res:?}");
+        assert!(target.exists(), "allowed write left no file");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

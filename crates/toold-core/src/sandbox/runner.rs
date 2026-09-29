@@ -2,11 +2,12 @@
 
 use crate::error::TooldError;
 use crate::policy::rule::ToolDefinition;
+use crate::sandbox::landlock;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Instant;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::process::Command;
 use tokio::time::{timeout, Duration};
 
@@ -23,6 +24,18 @@ pub struct ExecutionResult {
     pub stderr: String,
     /// Execution duration in milliseconds.
     pub duration_ms: u64,
+}
+
+/// Drains an optional child pipe to EOF into a fresh buffer.
+async fn drain_pipe<R>(pipe: &mut Option<R>) -> Result<Vec<u8>, std::io::Error>
+where
+    R: AsyncRead + Unpin,
+{
+    let mut buf = Vec::new();
+    if let Some(mut p) = pipe.take() {
+        p.read_to_end(&mut buf).await?;
+    }
+    Ok(buf)
 }
 
 /// Executes a tool within sandboxed constraints and captures results.
@@ -48,9 +61,10 @@ pub async fn execute_tool(
         cmd.arg(arg);
     }
 
-    if let Some(wd) = working_dir {
-        cmd.current_dir(wd);
-    }
+    // Default CWD inside the Landlock profile: inheriting the
+    // daemon's CWD (/) leaves getcwd() outside the ruleset, which
+    // aborts tools like systemd-analyze that resolve it.
+    cmd.current_dir(working_dir.unwrap_or(Path::new("/run")));
 
     // Clean execution environment
     cmd.env_clear();
@@ -61,30 +75,47 @@ pub async fn execute_tool(
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
 
+    // Landlock confinement: ruleset built here in the parent
+    // (fail-early); only the final restrict syscalls run in the
+    // child post-fork. A spawn failure carries the sandbox error.
+    let mut ruleset = Some(landlock::build_ruleset(tool)?);
+    // SAFETY: pre_exec runs once per spawn, post-fork pre-exec; the
+    // closure only takes the prebuilt ruleset and issues syscalls.
+    unsafe {
+        cmd.pre_exec(move || {
+            let rs = ruleset
+                .take()
+                .ok_or_else(|| std::io::Error::other("landlock ruleset already applied"))?;
+            landlock::restrict_child(rs)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e.to_string()))
+        });
+    }
+
     let start = Instant::now();
     let mut child = cmd.spawn().map_err(TooldError::Io)?;
+    let mut stdout_pipe = child.stdout.take();
+    let mut stderr_pipe = child.stderr.take();
+
+    // Drain both pipes WHILE the child runs: waiting first deadlocks
+    // once output exceeds the 64 KiB pipe buffer (every real journal).
+    let run = async {
+        let (status, out_buf, err_buf) = tokio::try_join!(
+            child.wait(),
+            drain_pipe(&mut stdout_pipe),
+            drain_pipe(&mut stderr_pipe)
+        )?;
+        Ok::<_, std::io::Error>((status, out_buf, err_buf))
+    };
 
     let timeout_duration = Duration::from_millis(tool.timeout_ms);
-
-    let wait_res = timeout(timeout_duration, child.wait()).await;
-    let status = match wait_res {
-        Ok(Ok(s)) => s,
+    let (status, stdout_buf, stderr_buf) = match timeout(timeout_duration, run).await {
+        Ok(Ok(t)) => t,
         Ok(Err(e)) => return Err(TooldError::Io(e)),
         Err(_) => {
             let _ = child.kill().await;
             return Err(TooldError::Timeout(tool.timeout_ms));
         }
     };
-
-    let mut stdout_buf = Vec::new();
-    let mut stderr_buf = Vec::new();
-
-    if let Some(mut out) = child.stdout.take() {
-        let _ = out.read_to_end(&mut stdout_buf).await;
-    }
-    if let Some(mut err) = child.stderr.take() {
-        let _ = err.read_to_end(&mut stderr_buf).await;
-    }
 
     let duration_ms = start.elapsed().as_millis() as u64;
     let exit_code = status.code().unwrap_or(-1);

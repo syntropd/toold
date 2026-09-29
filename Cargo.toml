@@ -20,6 +20,7 @@ repository = "https://github.com/syntropd/toold"
 anyhow = "1.0.86"
 clap = { version = "4.5.13", features = ["derive", "env"] }
 clap_complete = "4.5.13"
+landlock = "0.4"
 libc = "0.2.155"
 rustix = { version = "0.38.34", features = ["fs", "net", "process", "param", "event"] }
 serde = { version = "1.0.204", features = ["derive"] }

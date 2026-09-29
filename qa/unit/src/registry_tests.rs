@@ -15,6 +15,15 @@ mod tests {
     }
 
     #[test]
+    fn test_journal_slice_scopes_unit_flag() {
+        // Trailing unit args must bind to -u, else journalctl rejects
+        // the bare match ("Failed to add match ...: Invalid argument").
+        let registry = ToolRegistry::with_defaults();
+        let tool = registry.get("journal.slice").unwrap();
+        assert!(tool.fixed_args.contains(&"-u".to_string()));
+    }
+
+    #[test]
     fn test_custom_tool_registration() {
         let registry = ToolRegistry::empty();
         assert!(registry.list().is_empty());
