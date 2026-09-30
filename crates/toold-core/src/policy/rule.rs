@@ -33,6 +33,12 @@ pub struct ToolDefinition {
     pub read_paths: Vec<PathBuf>,
     /// Permitted writable host filesystem paths under sandbox.
     pub write_paths: Vec<PathBuf>,
+    /// Permitted non-zero exit codes that still represent valid outcomes.
+    pub allowed_exit_codes: Vec<i32>,
+    /// Whether host network namespace access is permitted for socket diagnostics.
+    pub requires_network_access: bool,
+    /// Whether systemd control sockets under /run are required.
+    pub requires_systemd_socket: bool,
 }
 
 impl ToolDefinition {
@@ -53,6 +59,9 @@ impl ToolDefinition {
             timeout_ms,
             read_paths: vec![PathBuf::from("/etc"), PathBuf::from("/var/log")],
             write_paths: Vec::new(),
+            allowed_exit_codes: vec![0],
+            requires_network_access: false,
+            requires_systemd_socket: false,
         }
     }
 
@@ -74,6 +83,22 @@ impl ToolDefinition {
             timeout_ms,
             read_paths: vec![PathBuf::from("/etc"), PathBuf::from("/run")],
             write_paths,
+            allowed_exit_codes: vec![0],
+            requires_network_access: false,
+            requires_systemd_socket: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tool_defaults() {
+        let tool = ToolDefinition::read_only("test", "test", "/bin/true", vec![], 1000);
+        assert_eq!(tool.allowed_exit_codes, vec![0]);
+        assert!(!tool.requires_network_access);
+        assert!(!tool.requires_systemd_socket);
     }
 }

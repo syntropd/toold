@@ -52,7 +52,9 @@ pub fn build_bwrap_command(
     cmd.arg("--unshare-pid");
     cmd.arg("--unshare-uts");
     cmd.arg("--unshare-cgroup");
-    cmd.arg("--unshare-net");
+    if !tool.requires_network_access {
+        cmd.arg("--unshare-net");
+    }
     cmd.arg("--die-with-parent");
 
     // Standard root read-only system binds
@@ -75,6 +77,29 @@ pub fn build_bwrap_command(
     cmd.arg("--tmpfs").arg("/tmp");
     cmd.arg("--tmpfs").arg("/run");
 
+    if tool.requires_systemd_socket {
+        for sock in &["/run/dbus/system_bus_socket", "/run/systemd/private"] {
+            if Path::new(sock).exists() {
+                cmd.arg("--ro-bind").arg(sock).arg(sock);
+            }
+        }
+        if Path::new("/run/systemd/system").exists() {
+            let has_write = tool
+                .write_paths
+                .iter()
+                .any(|p| p.starts_with("/run/systemd/system"));
+            if has_write {
+                cmd.arg("--bind")
+                    .arg("/run/systemd/system")
+                    .arg("/run/systemd/system");
+            } else {
+                cmd.arg("--ro-bind")
+                    .arg("/run/systemd/system")
+                    .arg("/run/systemd/system");
+            }
+        }
+    }
+
     // Whitelisted path binds from tool policy
     for ro in &tool.read_paths {
         if ro.exists() {
@@ -83,7 +108,8 @@ pub fn build_bwrap_command(
     }
     let has_tmp_write = tool.write_paths.iter().any(|p| p.starts_with("/tmp"));
     for rw in &tool.write_paths {
-        if rw.exists() {
+        if rw.exists() && (!tool.requires_systemd_socket || !rw.starts_with("/run/systemd/system"))
+        {
             cmd.arg("--bind").arg(rw).arg(rw);
         }
     }

@@ -44,6 +44,25 @@ pub async fn execute_tool(
     user_args: &[String],
     working_dir: Option<&Path>,
 ) -> Result<ExecutionResult, TooldError> {
+    let bin_str = tool.binary_path.to_string_lossy();
+    if bin_str.ends_with("/sh")
+        || bin_str.ends_with("/bash")
+        || bin_str == "sh"
+        || bin_str == "bash"
+    {
+        return Err(TooldError::PermissionDenied(format!(
+            "Shell binary {} rejected by zero-shell policy",
+            bin_str
+        )));
+    }
+    for arg in tool.fixed_args.iter().chain(user_args.iter()) {
+        if arg == "-c" && (bin_str.contains("sh") || bin_str.contains("bash")) {
+            return Err(TooldError::PermissionDenied(
+                "Shell flag -c rejected by zero-shell policy".into(),
+            ));
+        }
+    }
+
     if !tool.binary_path.exists() {
         return Err(TooldError::ToolNotFound(format!(
             "Binary {} not found on host",
@@ -136,7 +155,7 @@ pub async fn execute_tool(
     .trim()
     .to_string();
 
-    if exit_code != 0 {
+    if !tool.allowed_exit_codes.contains(&exit_code) {
         return Err(TooldError::ExecutionFailed {
             command: full_cmd,
             exit_code,

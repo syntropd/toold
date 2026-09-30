@@ -127,4 +127,49 @@ mod tests {
         assert!(target.exists(), "allowed write left no file");
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    #[tokio::test]
+    async fn test_unit_status_with_allowed_exit_code_succeeds() {
+        if !std::path::Path::new("/usr/bin/systemctl").exists() {
+            return;
+        }
+        let registry = toold_core::policy::ToolRegistry::with_defaults();
+        let tool = registry.get("unit.status").unwrap();
+        let res = execute_tool(&tool, &["syntrop-nonexistent-probe.service".into()], None).await;
+        assert!(
+            res.is_ok(),
+            "unit.status for inactive unit should succeed: {:?}",
+            res.err()
+        );
+        let outcome = res.unwrap();
+        assert!(tool.allowed_exit_codes.contains(&outcome.exit_code));
+        assert!(outcome.exit_code == 3 || outcome.exit_code == 4 || outcome.exit_code == 0);
+    }
+
+    #[tokio::test]
+    async fn test_net_listeners_reads_listeners() {
+        if !std::path::Path::new("/usr/bin/ss").exists() {
+            return;
+        }
+        let registry = toold_core::policy::ToolRegistry::with_defaults();
+        let tool = registry.get("net.listeners").unwrap();
+        let res = execute_tool(&tool, &[], None).await;
+        assert!(res.is_ok(), "net.listeners failed: {:?}", res.err());
+        let outcome = res.unwrap();
+        assert_eq!(outcome.exit_code, 0);
+        assert!(outcome.stdout.contains("Local Address:Port") || outcome.stdout.contains("Netid"));
+    }
+
+    #[tokio::test]
+    async fn test_zero_shell_policy_rejects_shell_execution() {
+        let shell_tool = ToolDefinition::read_only(
+            "test.sh",
+            "Shell invocation",
+            "/bin/sh",
+            vec!["-c".into()],
+            2000,
+        );
+        let res = execute_tool(&shell_tool, &["echo pwned".into()], None).await;
+        assert!(matches!(res, Err(TooldError::PermissionDenied(_))));
+    }
 }

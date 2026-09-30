@@ -49,13 +49,16 @@ impl ToolRegistry {
     }
 
     fn register_default_tools(&self) {
-        self.register(ToolDefinition::read_only(
+        let mut unit_status = ToolDefinition::read_only(
             "unit.status",
             "Queries the active runtime state of a systemd unit",
             "/usr/bin/systemctl",
             vec!["is-active".into()],
             5000,
-        ));
+        );
+        unit_status.allowed_exit_codes = vec![0, 3, 4];
+        unit_status.requires_systemd_socket = true;
+        self.register(unit_status);
 
         self.register(ToolDefinition::read_only(
             "journal.slice",
@@ -70,13 +73,15 @@ impl ToolRegistry {
             8000,
         ));
 
-        self.register(ToolDefinition::read_only(
+        let mut net_listeners = ToolDefinition::read_only(
             "net.listeners",
             "Lists active listening TCP and UDP sockets across the host",
             "/usr/bin/ss",
             vec!["-tulpn".into()],
             5000,
-        ));
+        );
+        net_listeners.requires_network_access = true;
+        self.register(net_listeners);
 
         // Scratch, not system state: verify stages temp files under
         // /tmp (private-namespaced by the unit's PrivateTmp), so the
@@ -91,13 +96,36 @@ impl ToolRegistry {
         verify.write_paths.push(PathBuf::from("/tmp"));
         self.register(verify);
 
-        self.register(ToolDefinition::remediate(
+        let mut unit_restart = ToolDefinition::remediate(
             "unit.restart",
             "Restarts an existing systemd unit",
             "/usr/bin/systemctl",
             vec!["restart".into()],
             15000,
             vec![PathBuf::from("/run/systemd/system")],
-        ));
+        );
+        unit_restart.requires_systemd_socket = true;
+        self.register(unit_restart);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_registry_default_tool_policies() {
+        let reg = ToolRegistry::with_defaults();
+        let status = reg.get("unit.status").unwrap();
+        assert_eq!(status.allowed_exit_codes, vec![0, 3, 4]);
+        assert!(status.requires_systemd_socket);
+        assert!(!status.requires_network_access);
+
+        let net = reg.get("net.listeners").unwrap();
+        assert!(net.requires_network_access);
+        assert_eq!(net.allowed_exit_codes, vec![0]);
+
+        let restart = reg.get("unit.restart").unwrap();
+        assert!(restart.requires_systemd_socket);
     }
 }
