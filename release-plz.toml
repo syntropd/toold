@@ -13,9 +13,9 @@ changelog_update = true
 changelog_path = "./CHANGELOG.md"
 pr_labels = ["release-plz"]
 # Don't create git releases until the maintainer enables them.
-git_release = "disable"
+git_release_enable = false
 # Don't publish to crates.io until we're ready.
-publish = "never"
+publish = false
 
 [changelog]
 sort_by = "version"
