@@ -24,8 +24,8 @@ pub async fn exec_list(client: &TooldClient, as_json: bool) -> Result<()> {
     }
 
     println!(
-        "{:<18} {:<24} {:<10} {}",
-        "TOOL NAME", "MODE", "TIMEOUT", "DESCRIPTION"
+        "{:<18} {:<24} {:<10} DESCRIPTION",
+        "TOOL NAME", "MODE", "TIMEOUT"
     );
     println!("{}", "-".repeat(80));
 

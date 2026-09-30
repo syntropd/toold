@@ -36,7 +36,7 @@ pub async fn exec_history(
         return Ok(());
     }
 
-    println!("{:<28} {:<24} {}", "SNAPSHOT ID", "TARGET UNIT", "SUMMARY");
+    println!("{:<28} {:<24} SUMMARY", "SNAPSHOT ID", "TARGET UNIT");
     println!("{}", "-".repeat(80));
 
     for rec in records {
