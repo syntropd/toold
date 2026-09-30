@@ -171,5 +171,46 @@ mod tests {
         );
         let res = execute_tool(&shell_tool, &["echo pwned".into()], None).await;
         assert!(matches!(res, Err(TooldError::PermissionDenied(_))));
+
+        let bash_tool = ToolDefinition::read_only(
+            "test.bash",
+            "Bash invocation",
+            "/bin/bash",
+            vec!["-c".into()],
+            2000,
+        );
+        let res_bash = execute_tool(&bash_tool, &["echo pwned".into()], None).await;
+        assert!(matches!(res_bash, Err(TooldError::PermissionDenied(_))));
+    }
+
+    #[tokio::test]
+    async fn test_allowed_exit_code_3_succeeds_and_unallowed_fails() {
+        let py_path = "/usr/bin/python3";
+        if !std::path::Path::new(py_path).exists() {
+            return;
+        }
+        let mut tool = ToolDefinition::read_only(
+            "test.exit3",
+            "Exit 3 test",
+            py_path,
+            vec!["-c".into(), "import sys; sys.exit(3)".into()],
+            2000,
+        );
+        tool.allowed_exit_codes = vec![0, 3, 4];
+        let res = execute_tool(&tool, &[], None).await;
+        assert!(res.is_ok(), "allowed exit code 3 failed: {:?}", res.err());
+        assert_eq!(res.unwrap().exit_code, 3);
+
+        let mut strict_tool = tool.clone();
+        strict_tool.allowed_exit_codes = vec![0];
+        let strict_res = execute_tool(&strict_tool, &[], None).await;
+        assert!(
+            matches!(
+                strict_res,
+                Err(TooldError::ExecutionFailed { exit_code: 3, .. })
+            ),
+            "unallowed exit code 3 should fail: {:?}",
+            strict_res
+        );
     }
 }

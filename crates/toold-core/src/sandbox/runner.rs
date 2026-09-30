@@ -47,8 +47,12 @@ pub async fn execute_tool(
     let bin_str = tool.binary_path.to_string_lossy();
     if bin_str.ends_with("/sh")
         || bin_str.ends_with("/bash")
+        || bin_str.ends_with("/dash")
+        || bin_str.ends_with("/zsh")
         || bin_str == "sh"
         || bin_str == "bash"
+        || bin_str == "dash"
+        || bin_str == "zsh"
     {
         return Err(TooldError::PermissionDenied(format!(
             "Shell binary {} rejected by zero-shell policy",
@@ -56,7 +60,12 @@ pub async fn execute_tool(
         )));
     }
     for arg in tool.fixed_args.iter().chain(user_args.iter()) {
-        if arg == "-c" && (bin_str.contains("sh") || bin_str.contains("bash")) {
+        if arg == "-c"
+            && (bin_str.contains("sh")
+                || bin_str.contains("bash")
+                || bin_str.contains("dash")
+                || bin_str.contains("zsh"))
+        {
             return Err(TooldError::PermissionDenied(
                 "Shell flag -c rejected by zero-shell policy".into(),
             ));
