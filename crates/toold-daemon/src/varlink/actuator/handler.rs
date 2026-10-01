@@ -43,7 +43,9 @@ impl Actuator1Handler {
         }
     }
 
-    fn get_or_open_actuator(&self) -> Result<std::sync::MutexGuard<'_, Option<UInputActuator>>, VarlinkReply> {
+    fn get_or_open_actuator(
+        &self,
+    ) -> Result<std::sync::MutexGuard<'_, Option<UInputActuator>>, VarlinkReply> {
         let mut guard = self.actuator.lock().map_err(|e| {
             VarlinkReply::err(
                 "io.syntrop.Actuator1.DeviceError",

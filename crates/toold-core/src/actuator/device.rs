@@ -1,13 +1,11 @@
 //! Hardware initialization and uinput device capability registration.
 
 use super::event::{
-    InputAbsInfo, InputId, UInputAbsSetup, UInputSetup,
-    BUS_USB, UI_ABS_SETUP, UI_DEV_CREATE, UI_DEV_DESTROY, UI_DEV_SETUP,
-    UI_SET_ABSBIT, UI_SET_EVBIT, UI_SET_KEYBIT, UI_SET_RELBIT,
+    InputAbsInfo, InputId, UInputAbsSetup, UInputSetup, BUS_USB, UI_ABS_SETUP, UI_DEV_CREATE,
+    UI_DEV_DESTROY, UI_DEV_SETUP, UI_SET_ABSBIT, UI_SET_EVBIT, UI_SET_KEYBIT, UI_SET_RELBIT,
 };
 use super::keycodes::{
-    ABS_X, ABS_Y, BTN_LEFT, BTN_MIDDLE, BTN_RIGHT, EV_ABS, EV_KEY,
-    EV_REL, REL_WHEEL, REL_X, REL_Y,
+    ABS_X, ABS_Y, BTN_LEFT, BTN_MIDDLE, BTN_RIGHT, EV_ABS, EV_KEY, EV_REL, REL_WHEEL, REL_X, REL_Y,
 };
 use crate::error::TooldError;
 use std::fs::{File, OpenOptions};
@@ -23,7 +21,11 @@ pub fn open_uinput_device(path: &Path) -> Result<File, TooldError> {
         .custom_flags(libc::O_NONBLOCK)
         .open(path)
         .map_err(|e| {
-            TooldError::Actuator(format!("Failed to open uinput at {}: {}", path.display(), e))
+            TooldError::Actuator(format!(
+                "Failed to open uinput at {}: {}",
+                path.display(),
+                e
+            ))
         })?;
 
     let fd = file.as_raw_fd();
@@ -37,10 +39,14 @@ pub fn open_uinput_device(path: &Path) -> Result<File, TooldError> {
 fn verify_nonblocking(fd: RawFd) -> Result<(), TooldError> {
     let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
     if flags < 0 {
-        return Err(TooldError::Actuator("Failed to query file status flags".into()));
+        return Err(TooldError::Actuator(
+            "Failed to query file status flags".into(),
+        ));
     }
     if flags & libc::O_NONBLOCK == 0 {
-        return Err(TooldError::Actuator("uinput file descriptor is not non-blocking".into()));
+        return Err(TooldError::Actuator(
+            "uinput file descriptor is not non-blocking".into(),
+        ));
     }
     Ok(())
 }
@@ -131,16 +137,26 @@ unsafe fn checked_ioctl(fd: RawFd, req: u64, arg: libc::c_ulong) -> Result<(), T
     let res = libc::ioctl(fd, req, arg);
     if res < 0 {
         let err = std::io::Error::last_os_error();
-        return Err(TooldError::Actuator(format!("ioctl 0x{:x} failed: {}", req, err)));
+        return Err(TooldError::Actuator(format!(
+            "ioctl 0x{:x} failed: {}",
+            req, err
+        )));
     }
     Ok(())
 }
 
-unsafe fn checked_ioctl_ptr(fd: RawFd, req: u64, ptr: *const libc::c_void) -> Result<(), TooldError> {
+unsafe fn checked_ioctl_ptr(
+    fd: RawFd,
+    req: u64,
+    ptr: *const libc::c_void,
+) -> Result<(), TooldError> {
     let res = libc::ioctl(fd, req, ptr);
     if res < 0 {
         let err = std::io::Error::last_os_error();
-        return Err(TooldError::Actuator(format!("ioctl 0x{:x} failed: {}", req, err)));
+        return Err(TooldError::Actuator(format!(
+            "ioctl 0x{:x} failed: {}",
+            req, err
+        )));
     }
     Ok(())
 }

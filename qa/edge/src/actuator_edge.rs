@@ -46,8 +46,8 @@ mod tests {
         let tool_handler = Tool1Handler::new(registry, journal);
 
         let (shutdown_tx, shutdown_rx) = watch::channel(false);
-        let server = VarlinkServer::new(listener, tool_handler, shutdown_rx)
-            .with_actuator(actuator_handler);
+        let server =
+            VarlinkServer::new(listener, tool_handler, shutdown_rx).with_actuator(actuator_handler);
 
         let handle = tokio::spawn(server.run());
 
@@ -111,8 +111,8 @@ mod tests {
         let tool_handler = Tool1Handler::new(registry, journal);
 
         let (shutdown_tx, shutdown_rx) = watch::channel(false);
-        let server = VarlinkServer::new(listener, tool_handler, shutdown_rx)
-            .with_actuator(actuator_handler);
+        let server =
+            VarlinkServer::new(listener, tool_handler, shutdown_rx).with_actuator(actuator_handler);
 
         let handle = tokio::spawn(server.run());
 

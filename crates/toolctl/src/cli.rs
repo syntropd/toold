@@ -202,14 +202,25 @@ mod tests {
         let cli = Cli::try_parse_from(["toolctl", "actuator", "key", "30"]).unwrap();
         match cli.command {
             Commands::Actuator { command } => {
-                assert_eq!(command, ActuatorCommands::Key { code: 30, up: false });
+                assert_eq!(
+                    command,
+                    ActuatorCommands::Key {
+                        code: 30,
+                        up: false
+                    }
+                );
             }
             _ => panic!("expected actuator key"),
         }
         let cli = Cli::try_parse_from(["toolctl", "actuator", "type", "hello"]).unwrap();
         match cli.command {
             Commands::Actuator { command } => {
-                assert_eq!(command, ActuatorCommands::Type { text: "hello".into() });
+                assert_eq!(
+                    command,
+                    ActuatorCommands::Type {
+                        text: "hello".into()
+                    }
+                );
             }
             _ => panic!("expected actuator type"),
         }

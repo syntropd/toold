@@ -30,17 +30,19 @@ impl FileSink {
 
 impl DeviceSink for FileSink {
     fn emit(&self, event: RawInputEvent) -> Result<(), TooldError> {
-        let mut guard = self.file.lock().map_err(|e| {
-            TooldError::Actuator(format!("FileSink lock poisoned: {}", e))
-        })?;
+        let mut guard = self
+            .file
+            .lock()
+            .map_err(|e| TooldError::Actuator(format!("FileSink lock poisoned: {}", e)))?;
         let bytes = event.to_bytes();
         guard.write_all(&bytes).map_err(TooldError::Io)
     }
 
     fn sync(&self) -> Result<(), TooldError> {
-        let mut guard = self.file.lock().map_err(|e| {
-            TooldError::Actuator(format!("FileSink lock poisoned: {}", e))
-        })?;
+        let mut guard = self
+            .file
+            .lock()
+            .map_err(|e| TooldError::Actuator(format!("FileSink lock poisoned: {}", e)))?;
         guard.flush().map_err(TooldError::Io)
     }
 }
@@ -71,9 +73,10 @@ impl MockSink {
 
 impl DeviceSink for MockSink {
     fn emit(&self, event: RawInputEvent) -> Result<(), TooldError> {
-        let mut guard = self.events.lock().map_err(|e| {
-            TooldError::Actuator(format!("MockSink lock poisoned: {}", e))
-        })?;
+        let mut guard = self
+            .events
+            .lock()
+            .map_err(|e| TooldError::Actuator(format!("MockSink lock poisoned: {}", e)))?;
         guard.push(event);
         Ok(())
     }

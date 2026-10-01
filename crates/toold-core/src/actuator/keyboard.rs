@@ -18,7 +18,10 @@ pub fn send_key(sink: &dyn DeviceSink, key_code: u16, down: bool) -> Result<(), 
 pub fn type_text(sink: &dyn DeviceSink, text: &str) -> Result<(), TooldError> {
     for ch in text.chars() {
         let (keycode, need_shift) = char_to_keycode(ch).ok_or_else(|| {
-            TooldError::Actuator(format!("Unsupported character '{}' for keyboard emission", ch))
+            TooldError::Actuator(format!(
+                "Unsupported character '{}' for keyboard emission",
+                ch
+            ))
         })?;
 
         if need_shift {

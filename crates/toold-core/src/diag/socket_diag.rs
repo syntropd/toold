@@ -62,7 +62,8 @@ fn read_netlink_responses(fd: &OwnedFd, out: &mut Vec<TcpSocketInfo>) -> Result<
         let mut offset = 0;
         let mut done = false;
         while offset + 16 <= len {
-            let nlh = unsafe { std::ptr::read_unaligned(buf[offset..].as_ptr() as *const NlMsgHdr) };
+            let nlh =
+                unsafe { std::ptr::read_unaligned(buf[offset..].as_ptr() as *const NlMsgHdr) };
             let msg_len = nlh.nlmsg_len as usize;
             if msg_len < 16 || offset + msg_len > len {
                 break;
@@ -73,14 +74,14 @@ fn read_netlink_responses(fd: &OwnedFd, out: &mut Vec<TcpSocketInfo>) -> Result<
                 break;
             }
             if nlh.nlmsg_type == NLMSG_ERROR {
-                return Err(TooldError::Diagnostic("Netlink error response received".into()));
+                return Err(TooldError::Diagnostic(
+                    "Netlink error response received".into(),
+                ));
             }
 
             if msg_len >= 16 + std::mem::size_of::<InetDiagMsg>() {
                 let diag = unsafe {
-                    std::ptr::read_unaligned(
-                        buf[offset + 16..].as_ptr() as *const InetDiagMsg
-                    )
+                    std::ptr::read_unaligned(buf[offset + 16..].as_ptr() as *const InetDiagMsg)
                 };
                 let payload_start = offset + 16 + std::mem::size_of::<InetDiagMsg>();
                 let payload_end = offset + msg_len;
@@ -123,22 +124,45 @@ fn parse_rtattrs(data: &[u8]) -> (Option<u32>, Option<u32>) {
     (rtt_us, retrans)
 }
 
-fn parse_socket_info(msg: &InetDiagMsg, rtt_us: Option<u32>, retrans: Option<u32>) -> TcpSocketInfo {
-    let family = if msg.idiag_family == libc::AF_INET6 as u8 { "tcp6" } else { "tcp" };
+fn parse_socket_info(
+    msg: &InetDiagMsg,
+    rtt_us: Option<u32>,
+    retrans: Option<u32>,
+) -> TcpSocketInfo {
+    let family = if msg.idiag_family == libc::AF_INET6 as u8 {
+        "tcp6"
+    } else {
+        "tcp"
+    };
     let state = match msg.idiag_state {
-        1 => "ESTAB", 2 => "SYN-SENT", 3 => "SYN-RECV", 4 => "FIN-WAIT-1",
-        5 => "FIN-WAIT-2", 6 => "TIME-WAIT", 7 => "CLOSE", 8 => "CLOSE-WAIT",
-        9 => "LAST-ACK", 10 => "LISTEN", 11 => "CLOSING", _ => "UNKNOWN",
+        1 => "ESTAB",
+        2 => "SYN-SENT",
+        3 => "SYN-RECV",
+        4 => "FIN-WAIT-1",
+        5 => "FIN-WAIT-2",
+        6 => "TIME-WAIT",
+        7 => "CLOSE",
+        8 => "CLOSE-WAIT",
+        9 => "LAST-ACK",
+        10 => "LISTEN",
+        11 => "CLOSING",
+        _ => "UNKNOWN",
     };
 
     let (local_addr, peer_addr) = if msg.idiag_family == libc::AF_INET6 as u8 {
         let src_bytes: [u8; 16] = unsafe { std::mem::transmute(msg.id.idiag_src) };
         let dst_bytes: [u8; 16] = unsafe { std::mem::transmute(msg.id.idiag_dst) };
-        (Ipv6Addr::from(src_bytes).to_string(), Ipv6Addr::from(dst_bytes).to_string())
+        (
+            Ipv6Addr::from(src_bytes).to_string(),
+            Ipv6Addr::from(dst_bytes).to_string(),
+        )
     } else {
         let src_bytes: [u8; 4] = msg.id.idiag_src[0].to_ne_bytes();
         let dst_bytes: [u8; 4] = msg.id.idiag_dst[0].to_ne_bytes();
-        (Ipv4Addr::from(src_bytes).to_string(), Ipv4Addr::from(dst_bytes).to_string())
+        (
+            Ipv4Addr::from(src_bytes).to_string(),
+            Ipv4Addr::from(dst_bytes).to_string(),
+        )
     };
 
     TcpSocketInfo {
@@ -166,13 +190,26 @@ pub fn run_socket_diag(args: &[String]) -> Result<String, TooldError> {
     } else {
         let mut table = format!(
             "{:<8} {:<10} {:<7} {:<7} {:<22} {:<22} {:<8} {:<8}\n",
-            "PROTO", "STATE", "RECV-Q", "SEND-Q", "LOCAL-ADDRESS:PORT", "PEER-ADDRESS:PORT", "RTT_US", "RETRANS"
+            "PROTO",
+            "STATE",
+            "RECV-Q",
+            "SEND-Q",
+            "LOCAL-ADDRESS:PORT",
+            "PEER-ADDRESS:PORT",
+            "RTT_US",
+            "RETRANS"
         );
         for s in &sockets {
             let local = format!("{}:{}", s.local_addr, s.local_port);
             let peer = format!("{}:{}", s.peer_addr, s.peer_port);
-            let rtt = s.rtt_us.map(|r| r.to_string()).unwrap_or_else(|| "-".into());
-            let ret = s.retrans.map(|r| r.to_string()).unwrap_or_else(|| "-".into());
+            let rtt = s
+                .rtt_us
+                .map(|r| r.to_string())
+                .unwrap_or_else(|| "-".into());
+            let ret = s
+                .retrans
+                .map(|r| r.to_string())
+                .unwrap_or_else(|| "-".into());
             table.push_str(&format!(
                 "{:<8} {:<10} {:<7} {:<7} {:<22} {:<22} {:<8} {:<8}\n",
                 s.family, s.state, s.rx_queue, s.tx_queue, local, peer, rtt, ret

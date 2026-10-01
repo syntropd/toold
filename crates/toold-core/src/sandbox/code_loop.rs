@@ -72,13 +72,24 @@ pub async fn run_self_correction_loop<M: ModelCompleter>(
     })
 }
 
-async fn execute_code_sandboxed(code: &str, language: &str) -> Result<(i32, String, String), TooldError> {
+async fn execute_code_sandboxed(
+    code: &str,
+    language: &str,
+) -> Result<(i32, String, String), TooldError> {
     let dir = tempdir().map_err(TooldError::Io)?;
-    let ext = if language == "rust" || language == "rs" { "rs" } else { "py" };
+    let ext = if language == "rust" || language == "rs" {
+        "rs"
+    } else {
+        "py"
+    };
     let file_path = dir.path().join(format!("scratch.{}", ext));
     fs::write(&file_path, code).map_err(TooldError::Io)?;
 
-    let bin = if ext == "rs" { "/usr/bin/rustc" } else { "/usr/bin/python3" };
+    let bin = if ext == "rs" {
+        "/usr/bin/rustc"
+    } else {
+        "/usr/bin/python3"
+    };
     let fixed_args = if ext == "rs" {
         let out_bin = dir.path().join("scratch_bin");
         vec![
@@ -91,27 +102,41 @@ async fn execute_code_sandboxed(code: &str, language: &str) -> Result<(i32, Stri
         vec![file_path.to_string_lossy().to_string()]
     };
 
-    let mut tool = ToolDefinition::read_only("scratch.exec", "Scratch execution", bin, fixed_args, 5000);
+    let mut tool =
+        ToolDefinition::read_only("scratch.exec", "Scratch execution", bin, fixed_args, 5000);
     tool.read_paths.push(dir.path().to_path_buf());
     tool.write_paths.push(dir.path().to_path_buf());
     tool.allowed_exit_codes = vec![0, 1, 2, 101];
 
     let compile_res = execute_tool(&tool, &[], Some(dir.path())).await?;
     if compile_res.exit_code != 0 || ext != "rs" {
-        return Ok((compile_res.exit_code, compile_res.stdout, compile_res.stderr));
+        return Ok((
+            compile_res.exit_code,
+            compile_res.stdout,
+            compile_res.stderr,
+        ));
     }
 
     // If Rust compilation succeeded, execute the produced binary
     let out_bin = dir.path().join("scratch_bin");
-    let mut run_tool = ToolDefinition::read_only("scratch.run", "Run scratch binary", &out_bin, vec![], 5000);
+    let mut run_tool =
+        ToolDefinition::read_only("scratch.run", "Run scratch binary", &out_bin, vec![], 5000);
     run_tool.read_paths.push(dir.path().to_path_buf());
     let run_res = execute_tool(&run_tool, &[], Some(dir.path())).await?;
     Ok((run_res.exit_code, run_res.stdout, run_res.stderr))
 }
 
-fn build_reflection_prompt(code: &str, language: &str, stderr: &str, diags: &[Diagnostic]) -> String {
+fn build_reflection_prompt(
+    code: &str,
+    language: &str,
+    stderr: &str,
+    diags: &[Diagnostic],
+) -> String {
     let diag_summary = if !diags.is_empty() {
-        format!("Parsed error: {} (line {:?})", diags[0].message, diags[0].line)
+        format!(
+            "Parsed error: {} (line {:?})",
+            diags[0].message, diags[0].line
+        )
     } else {
         "Unknown error".into()
     };
@@ -134,7 +159,9 @@ fn build_reflection_prompt(code: &str, language: &str, stderr: &str, diags: &[Di
 
 fn extract_code_block(completion: &str, language: &str) -> Option<String> {
     let lang_marker = format!("```{}", language);
-    let start = completion.find(&lang_marker).map(|p| p + lang_marker.len())
+    let start = completion
+        .find(&lang_marker)
+        .map(|p| p + lang_marker.len())
         .or_else(|| completion.find("```").map(|p| p + 3))?;
     let rest = &completion[start..];
     let end = rest.find("```")?;
@@ -168,7 +195,9 @@ mod tests {
             fixed_code: fixed.into(),
         };
 
-        let res = run_self_correction_loop(broken, "python", &model).await.unwrap();
+        let res = run_self_correction_loop(broken, "python", &model)
+            .await
+            .unwrap();
         assert!(res.success);
         assert_eq!(res.iterations, 2);
         assert_eq!(res.final_code, fixed);
@@ -185,7 +214,9 @@ mod tests {
             fixed_code: broken.into(), // model fails to fix it
         };
 
-        let res = run_self_correction_loop(broken, "python", &model).await.unwrap();
+        let res = run_self_correction_loop(broken, "python", &model)
+            .await
+            .unwrap();
         assert!(!res.success);
         assert_eq!(res.iterations, MAX_ITERATIONS);
     }

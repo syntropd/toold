@@ -24,7 +24,11 @@ pub async fn exec_actuator(
             if as_json {
                 println!("{}", serde_json::to_string_pretty(&reply)?);
             } else {
-                println!("Emitted key {} ({})", code, if down { "down" } else { "up" });
+                println!(
+                    "Emitted key {} ({})",
+                    code,
+                    if down { "down" } else { "up" }
+                );
             }
         }
         ActuatorCommands::Type { text } => {

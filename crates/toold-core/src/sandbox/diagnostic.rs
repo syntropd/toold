@@ -31,14 +31,26 @@ fn parse_rust_diagnostics(stderr: &str) -> Vec<Diagnostic> {
             if let Ok(val) = serde_json::from_str::<serde_json::Value>(trimmed) {
                 let level = val.get("level").and_then(|v| v.as_str()).unwrap_or("error");
                 if level == "error" {
-                    let message = val.get("message").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    let (line_num, col, snippet) = val.get("spans")
+                    let message = val
+                        .get("message")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let (line_num, col, snippet) = val
+                        .get("spans")
                         .and_then(|v| v.as_array())
                         .and_then(|arr| arr.first())
                         .map(|span| {
-                            let line = span.get("line_start").and_then(|v| v.as_u64()).map(|n| n as usize);
-                            let col = span.get("column_start").and_then(|v| v.as_u64()).map(|n| n as usize);
-                            let text = span.get("text")
+                            let line = span
+                                .get("line_start")
+                                .and_then(|v| v.as_u64())
+                                .map(|n| n as usize);
+                            let col = span
+                                .get("column_start")
+                                .and_then(|v| v.as_u64())
+                                .map(|n| n as usize);
+                            let text = span
+                                .get("text")
                                 .and_then(|t| t.as_array())
                                 .and_then(|arr| arr.first())
                                 .and_then(|t| t.get("text"))
@@ -85,7 +97,10 @@ fn parse_python_diagnostics(stderr: &str) -> Vec<Diagnostic> {
         } else if trimmed.ends_with("Error:") || trimmed.contains("Error: ") {
             let parts: Vec<&str> = trimmed.splitn(2, ':').collect();
             let err_type = parts[0].trim().to_string();
-            let msg = parts.get(1).map(|m| m.trim().to_string()).unwrap_or_default();
+            let msg = parts
+                .get(1)
+                .map(|m| m.trim().to_string())
+                .unwrap_or_default();
             diags.push(Diagnostic {
                 language: "python".into(),
                 error_type: err_type,
@@ -106,7 +121,10 @@ fn parse_python_diagnostics(stderr: &str) -> Vec<Diagnostic> {
 }
 
 fn parse_generic_diagnostics(language: &str, stderr: &str) -> Vec<Diagnostic> {
-    let first_line = stderr.lines().find(|l| !l.trim().is_empty()).unwrap_or("Unknown error");
+    let first_line = stderr
+        .lines()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("Unknown error");
     vec![Diagnostic {
         language: language.into(),
         error_type: "RuntimeError".into(),
