@@ -1,6 +1,6 @@
 {
  "repo": "toold",
- "rev": "b075a91",
+ "rev": "a095ab1",
  "dirty": true,
  "pages": [
   {
@@ -124,7 +124,7 @@
   },
   {
    "path": "./crates/toold-core/src/actuator/mouse.rs",
-   "lines": 45,
+   "lines": 102,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
@@ -176,7 +176,7 @@
    "lines": 108,
    "bin_bytes": null,
    "heat_pct": null,
-   "reach": 15
+   "reach": 17
   },
   {
    "path": "./crates/toold-core/src/journal/mod.rs",
@@ -229,14 +229,21 @@
   },
   {
    "path": "./crates/toold-core/src/sandbox/code_loop.rs",
-   "lines": 223,
+   "lines": 250,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
   },
   {
+   "path": "./crates/toold-core/src/sandbox/completer.rs",
+   "lines": 218,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 2
+  },
+  {
    "path": "./crates/toold-core/src/sandbox/diagnostic.rs",
-   "lines": 160,
+   "lines": 174,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
@@ -250,7 +257,7 @@
   },
   {
    "path": "./crates/toold-core/src/sandbox/mod.rs",
-   "lines": 12,
+   "lines": 14,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -299,7 +306,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/varlink/actuator/handler.rs",
-   "lines": 222,
+   "lines": 198,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
@@ -334,7 +341,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/varlink/service.rs",
-   "lines": 96,
+   "lines": 97,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
@@ -348,7 +355,7 @@
   },
   {
    "path": "./qa/edge/src/actuator_edge.rs",
-   "lines": 158,
+   "lines": 187,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0

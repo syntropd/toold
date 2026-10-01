@@ -48,6 +48,7 @@ interface io.syntrop.Actuator1
 method SendKey(key_code: int, down: bool) -> ()
 method TypeText(text: string) -> ()
 method MoveMouse(dx: int, dy: int) -> ()
+method MoveMouseAbs(x: float, y: float) -> ()
 method ClickMouse(button: int) -> ()
 
 error ActuatorUnavailable(reason: string)

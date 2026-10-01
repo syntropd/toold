@@ -75,12 +75,36 @@ impl Actuator1Handler {
         Ok(guard)
     }
 
+    fn with_actuator_op<F>(&self, op: F) -> VarlinkReply
+    where
+        F: FnOnce(&UInputActuator) -> Result<(), toold_core::error::TooldError>,
+    {
+        let guard = match self.get_or_open_actuator() {
+            Ok(g) => g,
+            Err(reply) => return reply,
+        };
+        let act = match guard.as_ref() {
+            Some(a) => a,
+            None => return actuator_unavailable("Actuator not initialized"),
+        };
+        match op(act) {
+            Ok(()) => VarlinkReply::ok(json!({})),
+            Err(e) => VarlinkReply::err(
+                "io.syntrop.Actuator1.DeviceError",
+                Some(json!({ "reason": e.to_string() })),
+            ),
+        }
+    }
+
     /// Dispatches incoming io.syntrop.Actuator1 method calls.
     pub async fn handle_call(&self, method: &str, params: Option<&Value>) -> Option<VarlinkReply> {
         match method {
             "io.syntrop.Actuator1.SendKey" => Some(self.handle_send_key(params)),
             "io.syntrop.Actuator1.TypeText" => Some(self.handle_type_text(params)),
-            "io.syntrop.Actuator1.MoveMouse" => Some(self.handle_move_mouse(params)),
+            "io.syntrop.Actuator1.MoveMouse" | "io.syntrop.Actuator1.MoveMouseRel" => {
+                Some(self.handle_move_mouse(params))
+            }
+            "io.syntrop.Actuator1.MoveMouseAbs" => Some(self.handle_move_mouse_abs(params)),
             "io.syntrop.Actuator1.ClickMouse" => Some(self.handle_click_mouse(params)),
             _ => None,
         }
@@ -99,23 +123,7 @@ impl Actuator1Handler {
             Some(d) => d,
             _ => return invalid_param("down"),
         };
-
-        let guard = match self.get_or_open_actuator() {
-            Ok(g) => g,
-            Err(reply) => return reply,
-        };
-        let act = match guard.as_ref() {
-            Some(a) => a,
-            None => return actuator_unavailable("Actuator not initialized"),
-        };
-
-        match act.send_key(key_code, down) {
-            Ok(()) => VarlinkReply::ok(json!({})),
-            Err(e) => VarlinkReply::err(
-                "io.syntrop.Actuator1.DeviceError",
-                Some(json!({ "reason": e.to_string() })),
-            ),
-        }
+        self.with_actuator_op(|act| act.send_key(key_code, down))
     }
 
     fn handle_type_text(&self, params: Option<&Value>) -> VarlinkReply {
@@ -127,23 +135,7 @@ impl Actuator1Handler {
             Some(t) => t,
             _ => return invalid_param("text"),
         };
-
-        let guard = match self.get_or_open_actuator() {
-            Ok(g) => g,
-            Err(reply) => return reply,
-        };
-        let act = match guard.as_ref() {
-            Some(a) => a,
-            None => return actuator_unavailable("Actuator not initialized"),
-        };
-
-        match act.type_text(text) {
-            Ok(()) => VarlinkReply::ok(json!({})),
-            Err(e) => VarlinkReply::err(
-                "io.syntrop.Actuator1.DeviceError",
-                Some(json!({ "reason": e.to_string() })),
-            ),
-        }
+        self.with_actuator_op(|act| act.type_text(text))
     }
 
     fn handle_move_mouse(&self, params: Option<&Value>) -> VarlinkReply {
@@ -159,23 +151,23 @@ impl Actuator1Handler {
             Some(y) => y as i32,
             _ => return invalid_param("dy"),
         };
+        self.with_actuator_op(|act| act.move_mouse_rel(dx, dy))
+    }
 
-        let guard = match self.get_or_open_actuator() {
-            Ok(g) => g,
-            Err(reply) => return reply,
+    fn handle_move_mouse_abs(&self, params: Option<&Value>) -> VarlinkReply {
+        let p = match params {
+            Some(p) => p,
+            None => return invalid_param("parameters"),
         };
-        let act = match guard.as_ref() {
-            Some(a) => a,
-            None => return actuator_unavailable("Actuator not initialized"),
+        let x = match p.get("x").and_then(|v| v.as_f64()) {
+            Some(x) if x.is_finite() => x as f32,
+            _ => return invalid_param("x"),
         };
-
-        match act.move_mouse_rel(dx, dy) {
-            Ok(()) => VarlinkReply::ok(json!({})),
-            Err(e) => VarlinkReply::err(
-                "io.syntrop.Actuator1.DeviceError",
-                Some(json!({ "reason": e.to_string() })),
-            ),
-        }
+        let y = match p.get("y").and_then(|v| v.as_f64()) {
+            Some(y) if y.is_finite() => y as f32,
+            _ => return invalid_param("y"),
+        };
+        self.with_actuator_op(|act| act.move_mouse_abs(x, y))
     }
 
     fn handle_click_mouse(&self, params: Option<&Value>) -> VarlinkReply {
@@ -187,23 +179,7 @@ impl Actuator1Handler {
             Some(b) if b >= 0 && b <= u16::MAX as i64 => b as u16,
             _ => return invalid_param("button"),
         };
-
-        let guard = match self.get_or_open_actuator() {
-            Ok(g) => g,
-            Err(reply) => return reply,
-        };
-        let act = match guard.as_ref() {
-            Some(a) => a,
-            None => return actuator_unavailable("Actuator not initialized"),
-        };
-
-        match act.click_mouse(button) {
-            Ok(()) => VarlinkReply::ok(json!({})),
-            Err(e) => VarlinkReply::err(
-                "io.syntrop.Actuator1.DeviceError",
-                Some(json!({ "reason": e.to_string() })),
-            ),
-        }
+        self.with_actuator_op(|act| act.click_mouse(button))
     }
 }
 

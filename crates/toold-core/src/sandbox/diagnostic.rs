@@ -70,6 +70,20 @@ fn parse_rust_diagnostics(stderr: &str) -> Vec<Diagnostic> {
                     });
                 }
             }
+        } else if trimmed.contains("panicked at") {
+            let msg = if let Some(pos) = trimmed.find("panicked at") {
+                trimmed[pos..].to_string()
+            } else {
+                trimmed.to_string()
+            };
+            diags.push(Diagnostic {
+                language: "rust".into(),
+                error_type: "Panic".into(),
+                message: msg,
+                line: None,
+                column: None,
+                raw_snippet: Some(trimmed.to_string()),
+            });
         }
     }
 

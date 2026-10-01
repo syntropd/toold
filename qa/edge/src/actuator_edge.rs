@@ -78,11 +78,29 @@ mod tests {
         .await;
         assert!(reply.get("error").is_none());
 
+        // 3b. MoveMouseRel alias
+        let reply = call(
+            &sock,
+            "io.syntrop.Actuator1.MoveMouseRel",
+            Some(json!({ "dx": 5, "dy": 5 })),
+        )
+        .await;
+        assert!(reply.get("error").is_none());
+
+        // 3c. MoveMouseAbs
+        let reply = call(
+            &sock,
+            "io.syntrop.Actuator1.MoveMouseAbs",
+            Some(json!({ "x": 0.5, "y": 0.75 })),
+        )
+        .await;
+        assert!(reply.get("error").is_none());
+
         // 4. ClickMouse
         let reply = call(
             &sock,
             "io.syntrop.Actuator1.ClickMouse",
-            Some(json!({ "button": BTN_LEFT })),
+            Some(json!({ "button": 1 })),
         )
         .await;
         assert!(reply.get("error").is_none());
@@ -145,6 +163,17 @@ mod tests {
             &sock,
             "io.syntrop.Actuator1.SendKey",
             Some(json!({ "down": true })),
+        )
+        .await;
+        assert_eq!(
+            reply["error"].as_str(),
+            Some("io.syntrop.Actuator1.InvalidParameter")
+        );
+
+        let reply = call(
+            &sock,
+            "io.syntrop.Actuator1.MoveMouseAbs",
+            Some(json!({ "x": 0.5 })),
         )
         .await;
         assert_eq!(

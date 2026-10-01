@@ -93,6 +93,7 @@ interface io.syntrop.Actuator1
 method SendKey(key_code: int, down: bool) -> ()
 method TypeText(text: string) -> ()
 method MoveMouse(dx: int, dy: int) -> ()
+method MoveMouseAbs(x: float, y: float) -> ()
 method ClickMouse(button: int) -> ()
 
 error ActuatorUnavailable(reason: string)
@@ -122,9 +123,16 @@ Moves the mouse pointer by relative delta offsets in pixels.
   - `dy` (int): Vertical pixel offset.
 - Returns: empty
 
-### 2.4 `ClickMouse`
+### 2.4 `MoveMouseAbs`
+Moves the mouse pointer to normalized absolute coordinates [0.0, 1.0].
+- Parameters:
+  - `x` (float): Horizontal normalized coordinate (0.0 to 1.0).
+  - `y` (float): Vertical normalized coordinate (0.0 to 1.0).
+- Returns: empty
+
+### 2.5 `ClickMouse`
 Emits a mouse button press followed immediately by release.
 - Parameters:
-  - `button` (int): Evdev mouse button code (e.g., 272 / 0x110 for BTN_LEFT).
+  - `button` (int): Evdev mouse button code (e.g., 272 / 0x110 for BTN_LEFT) or standard index (1=Left, 2=Right, 3=Middle).
 - Returns: empty
 

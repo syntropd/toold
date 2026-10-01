@@ -8,12 +8,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use tempfile::tempdir;
 
+pub use super::completer::ModelCompleter;
 pub const MAX_ITERATIONS: usize = 5;
-
-/// Trait for querying models (runtimed, routerd, or test mocks) for code repair.
-pub trait ModelCompleter: Send + Sync {
-    fn complete(&self, prompt: &str) -> Result<String, TooldError>;
-}
 
 /// Output record for an autonomous code correction run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,13 +104,15 @@ async fn execute_code_sandboxed(
     tool.write_paths.push(dir.path().to_path_buf());
     tool.allowed_exit_codes = vec![0, 1, 2, 101];
 
-    let compile_res = execute_tool(&tool, &[], Some(dir.path())).await?;
-    if compile_res.exit_code != 0 || ext != "rs" {
-        return Ok((
-            compile_res.exit_code,
-            compile_res.stdout,
-            compile_res.stderr,
-        ));
+    let (c_exit, c_out, c_err) = match execute_tool(&tool, &[], Some(dir.path())).await {
+        Ok(res) => (res.exit_code, res.stdout, res.stderr),
+        Err(TooldError::ExecutionFailed {
+            exit_code, stderr, ..
+        }) => (exit_code, String::new(), stderr),
+        Err(e) => return Err(e),
+    };
+    if c_exit != 0 || ext != "rs" {
+        return Ok((c_exit, c_out, c_err));
     }
 
     // If Rust compilation succeeded, execute the produced binary
@@ -122,8 +120,16 @@ async fn execute_code_sandboxed(
     let mut run_tool =
         ToolDefinition::read_only("scratch.run", "Run scratch binary", &out_bin, vec![], 5000);
     run_tool.read_paths.push(dir.path().to_path_buf());
-    let run_res = execute_tool(&run_tool, &[], Some(dir.path())).await?;
-    Ok((run_res.exit_code, run_res.stdout, run_res.stderr))
+    run_tool.write_paths.push(dir.path().to_path_buf());
+    run_tool.allowed_exit_codes = vec![0, 1, 2, 101];
+    let (r_exit, r_out, r_err) = match execute_tool(&run_tool, &[], Some(dir.path())).await {
+        Ok(res) => (res.exit_code, res.stdout, res.stderr),
+        Err(TooldError::ExecutionFailed {
+            exit_code, stderr, ..
+        }) => (exit_code, String::new(), stderr),
+        Err(e) => return Err(e),
+    };
+    Ok((r_exit, r_out, r_err))
 }
 
 fn build_reflection_prompt(
@@ -175,12 +181,13 @@ mod tests {
 
     struct MockRepairModel {
         fixed_code: String,
+        lang: &'static str,
     }
 
     impl ModelCompleter for MockRepairModel {
         fn complete(&self, prompt: &str) -> Result<String, TooldError> {
             assert!(prompt.contains("CURRENT CODE:"));
-            Ok(format!("```python\n{}\n```", self.fixed_code))
+            Ok(format!("```{}\n{}\n```", self.lang, self.fixed_code))
         }
     }
 
@@ -193,6 +200,7 @@ mod tests {
         let fixed = "print(\"hello fixed world\")";
         let model = MockRepairModel {
             fixed_code: fixed.into(),
+            lang: "python",
         };
 
         let res = run_self_correction_loop(broken, "python", &model)
@@ -205,13 +213,32 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_auto_repair_rust_syntax_error() {
+        if !Path::new("/usr/bin/rustc").exists() {
+            return;
+        }
+        let broken = "fn main() { println!(\"broken\") ";
+        let fixed = "fn main() { println!(\"fixed\"); }";
+        let model = MockRepairModel {
+            fixed_code: fixed.into(),
+            lang: "rust",
+        };
+        let res = run_self_correction_loop(broken, "rust", &model)
+            .await
+            .unwrap();
+        assert!(res.success);
+        assert_eq!(res.iterations, 2);
+    }
+
+    #[tokio::test]
     async fn test_circuit_breaker_trips_after_five_iterations() {
         if !Path::new("/usr/bin/python3").exists() {
             return;
         }
         let broken = "invalid python code ???";
         let model = MockRepairModel {
-            fixed_code: broken.into(), // model fails to fix it
+            fixed_code: broken.into(),
+            lang: "python",
         };
 
         let res = run_self_correction_loop(broken, "python", &model)
