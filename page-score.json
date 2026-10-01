@@ -1,7 +1,7 @@
 {
  "repo": "toold",
- "rev": "a095ab1",
- "dirty": true,
+ "rev": "33c2948",
+ "dirty": false,
  "pages": [
   {
    "path": "./crates/toolctl/src/client.rs",
