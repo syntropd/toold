@@ -72,6 +72,21 @@ pub async fn execute_tool(
         }
     }
 
+    if tool.name == "net.socket_diag"
+        || tool.binary_path.to_string_lossy() == "builtin:net.socket_diag"
+    {
+        let start = Instant::now();
+        let stdout = crate::diag::run_socket_diag(user_args)?;
+        let duration_ms = start.elapsed().as_millis() as u64;
+        return Ok(ExecutionResult {
+            command: "net.socket_diag".into(),
+            exit_code: 0,
+            stdout,
+            stderr: String::new(),
+            duration_ms,
+        });
+    }
+
     if !tool.binary_path.exists() {
         return Err(TooldError::ToolNotFound(format!(
             "Binary {} not found on host",

@@ -33,6 +33,9 @@ async fn main() -> Result<()> {
         Commands::Info => {
             exec_info(&client, cli.json).await?;
         }
+        Commands::Actuator { command } => {
+            exec_actuator(&client, &command, cli.json).await?;
+        }
         Commands::Completions { shell } => {
             let mut cmd = Cli::command();
             exec_completions(&mut cmd, shell);

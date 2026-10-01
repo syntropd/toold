@@ -1,10 +1,12 @@
 //! Varlink protocol definitions and server implementation for toold.
 
+pub mod actuator;
 pub mod protocol;
 pub mod server;
 pub mod service;
 pub mod tool1;
 
+pub use actuator::Actuator1Handler;
 pub use protocol::{VarlinkCall, VarlinkReply};
 pub use server::VarlinkServer;
 pub use service::{handle_service_call, IO_SYNTROP_TOOL1_INTERFACE};

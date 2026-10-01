@@ -1,5 +1,4 @@
-//! Varlink Unix domain socket listener and protocol dispatcher for toold.
-
+use super::actuator::Actuator1Handler;
 use super::protocol::{VarlinkCall, VarlinkReply};
 use super::service::handle_service_call;
 use super::tool1::Tool1Handler;
@@ -21,11 +20,12 @@ pub const MAX_MSG_BYTES: usize = 1024 * 1024;
 pub struct VarlinkServer {
     listener: UnixListener,
     handler: Arc<Tool1Handler>,
+    actuator: Arc<Actuator1Handler>,
     shutdown: watch::Receiver<bool>,
 }
 
 impl VarlinkServer {
-    /// Constructs a VarlinkServer from an open UnixListener.
+    /// Constructs a VarlinkServer from an open UnixListener with default Actuator1Handler.
     pub fn new(
         listener: UnixListener,
         handler: Tool1Handler,
@@ -34,8 +34,15 @@ impl VarlinkServer {
         Self {
             listener,
             handler: Arc::new(handler),
+            actuator: Arc::new(Actuator1Handler::new()),
             shutdown,
         }
+    }
+
+    /// Attaches a custom Actuator1Handler (e.g. for testing with mock actuator).
+    pub fn with_actuator(mut self, actuator: Actuator1Handler) -> Self {
+        self.actuator = Arc::new(actuator);
+        self
     }
 
     /// Runs the accept and dispatch loop until cancelled or `shutdown` flips.
@@ -44,6 +51,7 @@ impl VarlinkServer {
         let VarlinkServer {
             listener,
             handler,
+            actuator,
             mut shutdown,
         } = self;
         loop {
@@ -66,9 +74,10 @@ impl VarlinkServer {
                 accept = listener.accept() => match accept {
                     Ok((stream, _)) => {
                         let handler = Arc::clone(&handler);
+                        let actuator = Arc::clone(&actuator);
                         let sd = shutdown.clone();
                         tokio::spawn(async move {
-                            if let Err(e) = handle_client(stream, handler, sd).await {
+                            if let Err(e) = handle_client(stream, handler, actuator, sd).await {
                                 debug!("Client connection closed: {}", e);
                             }
                         });
@@ -86,6 +95,7 @@ impl VarlinkServer {
 async fn handle_client(
     mut stream: UnixStream,
     handler: Arc<Tool1Handler>,
+    actuator: Arc<Actuator1Handler>,
     mut shutdown: watch::Receiver<bool>,
 ) -> Result<()> {
     let mut buffer: Vec<u8> = Vec::with_capacity(4096);
@@ -157,7 +167,7 @@ async fn handle_client(
                         }
                     };
 
-                    let reply = dispatch_call(&call, &handler).await;
+                    let reply = dispatch_call(&call, &handler, &actuator).await;
                     stream.write_all(&reply.to_bytes()).await?;
                     let _ = stream.flush().await;
                 }
@@ -168,12 +178,23 @@ async fn handle_client(
     Ok(())
 }
 
-async fn dispatch_call(call: &VarlinkCall, handler: &Tool1Handler) -> VarlinkReply {
+async fn dispatch_call(
+    call: &VarlinkCall,
+    handler: &Tool1Handler,
+    actuator: &Actuator1Handler,
+) -> VarlinkReply {
     if let Some(reply) = handle_service_call(&call.method, call.parameters.as_ref()) {
         return reply;
     }
 
     if let Some(reply) = handler
+        .handle_call(&call.method, call.parameters.as_ref())
+        .await
+    {
+        return reply;
+    }
+
+    if let Some(reply) = actuator
         .handle_call(&call.method, call.parameters.as_ref())
         .await
     {

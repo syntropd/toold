@@ -42,6 +42,19 @@ error Timeout(limit_ms: int)
 error InvalidParameter(parameter: string)
 "#;
 
+pub const IO_SYNTROP_ACTUATOR1_INTERFACE: &str = r#"
+interface io.syntrop.Actuator1
+
+method SendKey(key_code: int, down: bool) -> ()
+method TypeText(text: string) -> ()
+method MoveMouse(dx: int, dy: int) -> ()
+method ClickMouse(button: int) -> ()
+
+error ActuatorUnavailable(reason: string)
+error DeviceError(reason: string)
+error InvalidParameter(parameter: string)
+"#;
+
 /// Handles standard org.varlink.service method dispatches.
 pub fn handle_service_call(
     method: &str,
@@ -55,7 +68,8 @@ pub fn handle_service_call(
             "url": "https://github.com/syntropd/toold",
             "interfaces": [
                 "org.varlink.service",
-                "io.syntrop.Tool1"
+                "io.syntrop.Tool1",
+                "io.syntrop.Actuator1"
             ]
         }))),
         "org.varlink.service.GetInterfaceDescription" => {
@@ -67,6 +81,9 @@ pub fn handle_service_call(
             match iface {
                 "io.syntrop.Tool1" => Some(VarlinkReply::ok(json!({
                     "description": IO_SYNTROP_TOOL1_INTERFACE.trim()
+                }))),
+                "io.syntrop.Actuator1" => Some(VarlinkReply::ok(json!({
+                    "description": IO_SYNTROP_ACTUATOR1_INTERFACE.trim()
                 }))),
                 _ => Some(VarlinkReply::err(
                     "org.varlink.service.InterfaceNotFound",

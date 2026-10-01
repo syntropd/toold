@@ -1,6 +1,8 @@
 //! Edge test suite module tree for toold.
 
 #[cfg(test)]
+mod actuator_edge;
+#[cfg(test)]
 mod corrupt_journal_edge;
 #[cfg(test)]
 mod output_edge;

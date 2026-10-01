@@ -83,6 +83,16 @@ impl ToolRegistry {
         net_listeners.requires_network_access = true;
         self.register(net_listeners);
 
+        let mut socket_diag = ToolDefinition::read_only(
+            "net.socket_diag",
+            "Enumerates active TCP queues, drop states, and RTT directly via kernel Netlink",
+            "builtin:net.socket_diag",
+            vec![],
+            5000,
+        );
+        socket_diag.requires_network_access = true;
+        self.register(socket_diag);
+
         // Scratch, not system state: verify stages temp files under
         // /tmp (private-namespaced by the unit's PrivateTmp), so the
         // read-only tool still needs that one write path to run.

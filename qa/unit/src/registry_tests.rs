@@ -12,6 +12,7 @@ mod tests {
         assert!(registry.get("unit.status").is_some());
         assert!(registry.get("journal.slice").is_some());
         assert!(registry.get("unit.restart").is_some());
+        assert!(registry.get("net.socket_diag").is_some());
     }
 
     #[test]

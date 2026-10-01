@@ -66,11 +66,50 @@ pub enum Commands {
     /// Inspect daemon vendor information and interface schemas.
     Info,
 
+    /// Virtual HID actuation primitives.
+    Actuator {
+        #[command(subcommand)]
+        command: ActuatorCommands,
+    },
+
     /// Generate shell auto-completion script.
     Completions {
         /// Target shell for completion generation.
         #[arg(value_enum)]
         shell: Shell,
+    },
+}
+
+/// Subcommands for virtual HID actuator primitives.
+#[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
+pub enum ActuatorCommands {
+    /// Emit key press or release event.
+    Key {
+        /// Linux evdev key code.
+        code: u16,
+        /// Emit key release instead of key press.
+        #[arg(long)]
+        up: bool,
+    },
+    /// Type text string.
+    Type {
+        /// Text string to emit.
+        text: String,
+    },
+    /// Move mouse pointer by relative delta.
+    Move {
+        /// Horizontal displacement in pixels.
+        #[arg(allow_hyphen_values = true)]
+        dx: i32,
+        /// Vertical displacement in pixels.
+        #[arg(allow_hyphen_values = true)]
+        dy: i32,
+    },
+    /// Click mouse button.
+    Click {
+        /// Mouse button code (default 272 for BTN_LEFT).
+        #[arg(default_value = "272")]
+        button: u16,
     },
 }
 
@@ -155,6 +194,38 @@ mod tests {
         match cli.command {
             Commands::Completions { shell } => assert!(matches!(shell, Shell::Bash)),
             _ => panic!("expected completions subcommand"),
+        }
+    }
+
+    #[test]
+    fn test_parse_actuator_commands() {
+        let cli = Cli::try_parse_from(["toolctl", "actuator", "key", "30"]).unwrap();
+        match cli.command {
+            Commands::Actuator { command } => {
+                assert_eq!(command, ActuatorCommands::Key { code: 30, up: false });
+            }
+            _ => panic!("expected actuator key"),
+        }
+        let cli = Cli::try_parse_from(["toolctl", "actuator", "type", "hello"]).unwrap();
+        match cli.command {
+            Commands::Actuator { command } => {
+                assert_eq!(command, ActuatorCommands::Type { text: "hello".into() });
+            }
+            _ => panic!("expected actuator type"),
+        }
+        let cli = Cli::try_parse_from(["toolctl", "actuator", "move", "10", "-5"]).unwrap();
+        match cli.command {
+            Commands::Actuator { command } => {
+                assert_eq!(command, ActuatorCommands::Move { dx: 10, dy: -5 });
+            }
+            _ => panic!("expected actuator move"),
+        }
+        let cli = Cli::try_parse_from(["toolctl", "actuator", "click", "272"]).unwrap();
+        match cli.command {
+            Commands::Actuator { command } => {
+                assert_eq!(command, ActuatorCommands::Click { button: 272 });
+            }
+            _ => panic!("expected actuator click"),
         }
     }
 

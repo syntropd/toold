@@ -16,7 +16,7 @@ RestartSec=2s
 # Unprivileged execution (privileged remediation via polkit rule)
 User=syntrop-tool
 Group=syntrop
-SupplementaryGroups=systemd-journal
+SupplementaryGroups=systemd-journal input
 NoNewPrivileges=yes
 
 # Hardened sandboxing
@@ -26,7 +26,8 @@ ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 PrivateTmp=true
-PrivateDevices=true
+PrivateDevices=false
+DeviceAllow=/dev/uinput rw
 MemoryDenyWriteExecute=true
 RestrictRealtime=true
 RestrictSUIDSGID=true

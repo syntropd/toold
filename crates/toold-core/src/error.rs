@@ -40,6 +40,14 @@ pub enum TooldError {
     #[error("Configuration parse error: {0}")]
     Config(String),
 
+    /// Actuator hardware or uinput error.
+    #[error("Actuator error: {0}")]
+    Actuator(String),
+
+    /// Socket or system diagnostic failure.
+    #[error("Diagnostic error: {0}")]
+    Diagnostic(String),
+
     /// Standard I/O error.
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),

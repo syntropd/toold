@@ -76,3 +76,55 @@ Lists historical rollback snapshots.
   - `limit` (int): Maximum records to return.
 - Returns:
   - `records` (`[]RollbackRecord`): Historical snapshot array.
+
+---
+
+# io.syntrop.Actuator1: Varlink Interface Specification
+
+The `io.syntrop.Actuator1` interface enables authorized callers to emit virtual HID keyboard and mouse events via the Linux kernel `/dev/uinput` subsystem.
+
+Socket Endpoint: `/run/syntrop/io.syntrop.Actuator1` (symlink to `/run/syntrop/io.syntrop.Tool1`)
+
+## 1. Interface Definition
+
+```varlink
+interface io.syntrop.Actuator1
+
+method SendKey(key_code: int, down: bool) -> ()
+method TypeText(text: string) -> ()
+method MoveMouse(dx: int, dy: int) -> ()
+method ClickMouse(button: int) -> ()
+
+error ActuatorUnavailable(reason: string)
+error DeviceError(reason: string)
+error InvalidParameter(parameter: string)
+```
+
+## 2. Methods
+
+### 2.1 `SendKey`
+Emits a low-level evdev key press or release event.
+- Parameters:
+  - `key_code` (int): Linux evdev key code (e.g., 30 for KEY_A, 28 for KEY_ENTER).
+  - `down` (bool): True for key press, false for key release.
+- Returns: empty
+
+### 2.2 `TypeText`
+Emits an ASCII/UTF-8 string with automatic shift modifiers and press/release sequences.
+- Parameters:
+  - `text` (string): Text string to type.
+- Returns: empty
+
+### 2.3 `MoveMouse`
+Moves the mouse pointer by relative delta offsets in pixels.
+- Parameters:
+  - `dx` (int): Horizontal pixel offset.
+  - `dy` (int): Vertical pixel offset.
+- Returns: empty
+
+### 2.4 `ClickMouse`
+Emits a mouse button press followed immediately by release.
+- Parameters:
+  - `button` (int): Evdev mouse button code (e.g., 272 / 0x110 for BTN_LEFT).
+- Returns: empty
+

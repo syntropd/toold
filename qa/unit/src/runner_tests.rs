@@ -213,4 +213,16 @@ mod tests {
             strict_res
         );
     }
+
+    #[tokio::test]
+    async fn test_net_socket_diag_builtin_executes() {
+        let registry = toold_core::policy::ToolRegistry::with_defaults();
+        let tool = registry.get("net.socket_diag").unwrap();
+        let res = execute_tool(&tool, &[], None).await;
+        assert!(res.is_ok(), "net.socket_diag failed: {:?}", res.err());
+        let exec = res.unwrap();
+        assert_eq!(exec.exit_code, 0);
+        assert!(exec.stdout.contains("PROTO"));
+        assert!(exec.stdout.contains("STATE"));
+    }
 }
