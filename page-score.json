@@ -1,7 +1,7 @@
 {
  "repo": "toold",
- "rev": "30122df",
- "dirty": false,
+ "rev": "960d195",
+ "dirty": true,
  "pages": [
   {
    "path": "./crates/toolctl/src/client.rs",
@@ -306,7 +306,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/varlink/actuator/handler.rs",
-   "lines": 198,
+   "lines": 180,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1

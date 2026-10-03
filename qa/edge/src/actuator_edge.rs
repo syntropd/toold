@@ -122,7 +122,7 @@ mod tests {
         let sock = dir.path().join("actuator_absent.sock");
         let listener = UnixListener::bind(&sock).unwrap();
 
-        let actuator_handler = Actuator1Handler::absent_for_test();
+        let actuator_handler = Actuator1Handler::new();
 
         let registry = Arc::new(ToolRegistry::empty());
         let journal = Arc::new(RollbackJournal::new(dir.path()).unwrap());
