@@ -9,7 +9,6 @@ use toold_core::actuator::UInputActuator;
 #[derive(Clone)]
 pub struct Actuator1Handler {
     actuator: Arc<Mutex<Option<UInputActuator>>>,
-    force_absent: bool,
 }
 
 impl Default for Actuator1Handler {
@@ -23,7 +22,6 @@ impl Actuator1Handler {
     pub fn new() -> Self {
         Self {
             actuator: Arc::new(Mutex::new(None)),
-            force_absent: false,
         }
     }
 
@@ -31,15 +29,6 @@ impl Actuator1Handler {
     pub fn with_actuator(actuator: UInputActuator) -> Self {
         Self {
             actuator: Arc::new(Mutex::new(Some(actuator))),
-            force_absent: false,
-        }
-    }
-
-    /// Creates a handler configured to simulate `/dev/uinput` absence for testing.
-    pub fn absent_for_test() -> Self {
-        Self {
-            actuator: Arc::new(Mutex::new(None)),
-            force_absent: true,
         }
     }
 
@@ -52,13 +41,6 @@ impl Actuator1Handler {
                 Some(json!({ "reason": format!("Lock poisoned: {}", e) })),
             )
         })?;
-
-        if self.force_absent {
-            return Err(VarlinkReply::err(
-                "io.syntrop.Actuator1.ActuatorUnavailable",
-                Some(json!({ "reason": "/dev/uinput is absent or inaccessible" })),
-            ));
-        }
 
         if guard.is_none() {
             match UInputActuator::open() {

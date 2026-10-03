@@ -1,6 +1,6 @@
 {
  "repo": "toold",
- "rev": "30122df",
+ "rev": "a0c9fb9",
  "dirty": false,
  "pages": [
   {
@@ -306,7 +306,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/varlink/actuator/handler.rs",
-   "lines": 198,
+   "lines": 180,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
