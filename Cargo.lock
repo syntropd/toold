@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "qa-edge"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "serde_json",
@@ -377,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "qa-unit"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "serde_json",
@@ -577,7 +577,7 @@ dependencies = [
 
 [[package]]
 name = "syntrop-toold"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "libc",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "syntrop-toold-core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "landlock",
@@ -741,7 +741,7 @@ checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "toolctl"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap",

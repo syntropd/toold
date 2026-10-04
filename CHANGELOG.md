@@ -4,6 +4,12 @@ All notable changes to toold are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-10-04
+
+### Changed
+- Bumped workspace and internal crate dependencies to 0.6.0.
+- Synchronized sandboxed actuators with suite v0.6.0 capabilities.
+
 ## [0.2.0] - 2026-09-24
 
 ### Fixed
