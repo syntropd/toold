@@ -58,7 +58,13 @@ async fn main() -> Result<()> {
     };
 
     let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);
-    let server = VarlinkServer::new(listener, handler, shutdown_rx);
+    let resolved_gid = toold_daemon::varlink::lookup_group("syntrop");
+    let trusted_group = if resolved_gid != toold_daemon::varlink::UNRESOLVED_GID {
+        toold_daemon::varlink::TrustedGroup::from_gid(resolved_gid)
+    } else {
+        toold_daemon::varlink::TrustedGroup::from_gid(unsafe { libc::getgid() })
+    };
+    let server = VarlinkServer::new(listener, handler, shutdown_rx).with_trusted_group(trusted_group);
 
     notify_ready();
     info!("toold successfully initialized and ready");

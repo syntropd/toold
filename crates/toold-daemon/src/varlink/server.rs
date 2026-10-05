@@ -1,4 +1,5 @@
 use super::actuator::Actuator1Handler;
+use super::auth::{authorize_peer, TrustedGroup};
 use super::protocol::{VarlinkCall, VarlinkReply};
 use super::service::handle_service_call;
 use super::tool1::Tool1Handler;
@@ -21,6 +22,7 @@ pub struct VarlinkServer {
     listener: UnixListener,
     handler: Arc<Tool1Handler>,
     actuator: Arc<Actuator1Handler>,
+    trusted_group: TrustedGroup,
     shutdown: watch::Receiver<bool>,
 }
 
@@ -31,10 +33,12 @@ impl VarlinkServer {
         handler: Tool1Handler,
         shutdown: watch::Receiver<bool>,
     ) -> Self {
+        let own_gid = unsafe { libc::getgid() };
         Self {
             listener,
             handler: Arc::new(handler),
             actuator: Arc::new(Actuator1Handler::new()),
+            trusted_group: TrustedGroup::from_gid(own_gid),
             shutdown,
         }
     }
@@ -45,6 +49,12 @@ impl VarlinkServer {
         self
     }
 
+    /// Attaches a custom TrustedGroup for peer authorization.
+    pub fn with_trusted_group(mut self, trusted_group: TrustedGroup) -> Self {
+        self.trusted_group = trusted_group;
+        self
+    }
+
     /// Runs the accept and dispatch loop until cancelled or `shutdown` flips.
     pub async fn run(self) -> Result<()> {
         info!("toold Varlink server accepting connections");
@@ -52,6 +62,7 @@ impl VarlinkServer {
             listener,
             handler,
             actuator,
+            trusted_group,
             mut shutdown,
         } = self;
         loop {
@@ -77,7 +88,9 @@ impl VarlinkServer {
                         let actuator = Arc::clone(&actuator);
                         let sd = shutdown.clone();
                         tokio::spawn(async move {
-                            if let Err(e) = handle_client(stream, handler, actuator, sd).await {
+                            if let Err(e) =
+                                handle_client(stream, handler, actuator, trusted_group, sd).await
+                            {
                                 debug!("Client connection closed: {}", e);
                             }
                         });
@@ -96,8 +109,14 @@ async fn handle_client(
     mut stream: UnixStream,
     handler: Arc<Tool1Handler>,
     actuator: Arc<Actuator1Handler>,
+    trusted_group: TrustedGroup,
     mut shutdown: watch::Receiver<bool>,
 ) -> Result<()> {
+    if let Err(e) = authorize_peer(&stream, trusted_group) {
+        warn!("toold Varlink peer authorization rejected: {}", e);
+        return Err(e);
+    }
+
     let mut buffer: Vec<u8> = Vec::with_capacity(4096);
     let mut read_chunk = [0u8; 1024];
 

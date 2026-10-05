@@ -1,6 +1,6 @@
 {
  "repo": "toold",
- "rev": "a0c9fb9",
+ "rev": "87e81ef",
  "dirty": false,
  "pages": [
   {
@@ -292,7 +292,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/main.rs",
-   "lines": 135,
+   "lines": 141,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -319,8 +319,15 @@
    "reach": 0
   },
   {
+   "path": "./crates/toold-daemon/src/varlink/auth.rs",
+   "lines": 155,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 2
+  },
+  {
    "path": "./crates/toold-daemon/src/varlink/mod.rs",
-   "lines": 13,
+   "lines": 18,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -334,7 +341,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/varlink/server.rs",
-   "lines": 208,
+   "lines": 227,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 1
