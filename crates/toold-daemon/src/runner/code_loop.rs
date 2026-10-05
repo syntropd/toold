@@ -1,14 +1,14 @@
 //! Autonomous code self-correction loop with sandboxed execution and reflection.
 
-use super::diagnostic::{parse_diagnostics, Diagnostic};
-use super::runner::execute_tool;
-use crate::error::TooldError;
-use crate::policy::rule::ToolDefinition;
+use super::completer::ModelCompleter;
+use super::execute::execute_tool;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use tempfile::tempdir;
+use toold_core::error::TooldError;
+use toold_core::policy::rule::ToolDefinition;
+use toold_core::sandbox::diagnostic::{parse_diagnostics, Diagnostic};
 
-pub use super::completer::ModelCompleter;
 pub const MAX_ITERATIONS: usize = 5;
 
 /// Output record for an autonomous code correction run.
@@ -223,6 +223,7 @@ mod tests {
             fixed_code: fixed.into(),
             lang: "rust",
         };
+
         let res = run_self_correction_loop(broken, "rust", &model)
             .await
             .unwrap();

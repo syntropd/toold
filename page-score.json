@@ -1,7 +1,7 @@
 {
  "repo": "toold",
- "rev": "87e81ef",
- "dirty": false,
+ "rev": "5cfe6bc",
+ "dirty": true,
  "pages": [
   {
    "path": "./crates/toolctl/src/client.rs",
@@ -194,7 +194,7 @@
   },
   {
    "path": "./crates/toold-core/src/lib.rs",
-   "lines": 22,
+   "lines": 20,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -225,21 +225,7 @@
    "lines": 146,
    "bin_bytes": null,
    "heat_pct": null,
-   "reach": 2
-  },
-  {
-   "path": "./crates/toold-core/src/sandbox/code_loop.rs",
-   "lines": 250,
-   "bin_bytes": null,
-   "heat_pct": null,
    "reach": 1
-  },
-  {
-   "path": "./crates/toold-core/src/sandbox/completer.rs",
-   "lines": 218,
-   "bin_bytes": null,
-   "heat_pct": null,
-   "reach": 2
   },
   {
    "path": "./crates/toold-core/src/sandbox/diagnostic.rs",
@@ -253,21 +239,14 @@
    "lines": 150,
    "bin_bytes": null,
    "heat_pct": null,
-   "reach": 1
+   "reach": 2
   },
   {
    "path": "./crates/toold-core/src/sandbox/mod.rs",
-   "lines": 14,
+   "lines": 9,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
-  },
-  {
-   "path": "./crates/toold-core/src/sandbox/runner.rs",
-   "lines": 197,
-   "bin_bytes": null,
-   "heat_pct": null,
-   "reach": 2
   },
   {
    "path": "./crates/toold-core/tests/page_rule.rs",
@@ -285,7 +264,7 @@
   },
   {
    "path": "./crates/toold-daemon/src/lib.rs",
-   "lines": 9,
+   "lines": 21,
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 0
@@ -303,6 +282,34 @@
    "bin_bytes": null,
    "heat_pct": null,
    "reach": 2
+  },
+  {
+   "path": "./crates/toold-daemon/src/runner/code_loop.rs",
+   "lines": 251,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 1
+  },
+  {
+   "path": "./crates/toold-daemon/src/runner/completer.rs",
+   "lines": 218,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 2
+  },
+  {
+   "path": "./crates/toold-daemon/src/runner/execute.rs",
+   "lines": 197,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 2
+  },
+  {
+   "path": "./crates/toold-daemon/src/runner/mod.rs",
+   "lines": 9,
+   "bin_bytes": null,
+   "heat_pct": null,
+   "reach": 0
   },
   {
    "path": "./crates/toold-daemon/src/varlink/actuator/handler.rs",

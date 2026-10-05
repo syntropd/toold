@@ -3,7 +3,7 @@
 #[cfg(test)]
 mod tests {
     use toold_core::policy::ToolDefinition;
-    use toold_core::sandbox::execute_tool;
+    use toold_daemon::runner::execute_tool;
 
     #[tokio::test]
     async fn test_high_volume_stdout_handling() {

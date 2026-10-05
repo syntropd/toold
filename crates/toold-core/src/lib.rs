@@ -17,6 +17,4 @@ pub use diag::{dump_all_tcp_sockets, run_socket_diag};
 pub use error::TooldError;
 pub use journal::{RollbackJournal, RollbackRecord};
 pub use policy::{ExecutionMode, ToolDefinition, ToolRegistry};
-pub use sandbox::{
-    execute_tool, run_self_correction_loop, CodeLoopResult, ExecutionResult, ModelCompleter,
-};
+pub use sandbox::{build_bwrap_command, is_bwrap_supported, parse_diagnostics, Diagnostic};

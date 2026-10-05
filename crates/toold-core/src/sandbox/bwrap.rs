@@ -2,7 +2,7 @@
 
 use crate::policy::rule::ToolDefinition;
 use std::path::{Path, PathBuf};
-use tokio::process::Command;
+use std::process::Command;
 
 /// Check if `bwrap` binary is available on the system.
 pub fn find_bwrap_binary() -> Option<PathBuf> {

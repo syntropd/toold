@@ -1,8 +1,5 @@
 //! Sandboxed child process execution engine with timeout and buffer limits.
 
-use crate::error::TooldError;
-use crate::policy::rule::ToolDefinition;
-use crate::sandbox::landlock;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Stdio;
@@ -10,6 +7,9 @@ use std::time::Instant;
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::process::Command;
 use tokio::time::{timeout, Duration};
+use toold_core::error::TooldError;
+use toold_core::policy::rule::ToolDefinition;
+use toold_core::sandbox::landlock;
 
 /// Structured output from a completed sandboxed tool execution.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -76,7 +76,7 @@ pub async fn execute_tool(
         || tool.binary_path.to_string_lossy() == "builtin:net.socket_diag"
     {
         let start = Instant::now();
-        let stdout = crate::diag::run_socket_diag(user_args)?;
+        let stdout = toold_core::diag::run_socket_diag(user_args)?;
         let duration_ms = start.elapsed().as_millis() as u64;
         return Ok(ExecutionResult {
             command: "net.socket_diag".into(),
@@ -95,8 +95,8 @@ pub async fn execute_tool(
     }
 
     let (mut cmd, uses_bwrap) =
-        if let Some(bwrap_cmd) = super::bwrap::build_bwrap_command(tool, user_args, working_dir) {
-            (bwrap_cmd, true)
+        if let Some(bwrap_cmd) = toold_core::sandbox::build_bwrap_command(tool, user_args, working_dir) {
+            (Command::from(bwrap_cmd), true)
         } else {
             let mut fallback = Command::new(&tool.binary_path);
             for arg in &tool.fixed_args {

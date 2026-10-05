@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use toold_core::journal::RollbackJournal;
 use toold_core::policy::{ExecutionMode, ToolRegistry};
-use toold_core::sandbox::execute_tool;
+use crate::runner::execute_tool;
 
 /// Shared state required for Tool1 method dispatches.
 #[derive(Clone)]

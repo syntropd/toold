@@ -1,10 +1,10 @@
 //! Model completers for autonomous code repair via Varlink (runtimed) or HTTP (routerd).
 
-use crate::error::TooldError;
 use serde_json::json;
 use std::path::{Path, PathBuf};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpStream, UnixStream};
+use toold_core::error::TooldError;
 
 pub const DEFAULT_RUNTIMED_SOCKET: &str = "/run/syntrop/io.syntrop.Runtime1";
 pub const DEFAULT_ROUTERD_HTTP: &str = "127.0.0.1:32768";
