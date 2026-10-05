@@ -24,6 +24,6 @@ serde_json.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-toold-core = { package = "syntrop-toold-core", version = "0.6.2", path = "../toold-core" }
+toold-core = { package = "syntrop-toold-core", version = "0.7.0", path = "../toold-core" }
 tracing.workspace = true
 tracing-subscriber.workspace = true
